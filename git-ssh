@@ -26,14 +26,6 @@
 # git-ssh
 version="0.2.0"
 
-# options
-# The script currently handles the following option(s):
-#
-# --ssh CONFIG   The name identifier of a config file in the ${config_dir}
-#                The contents expected in the CONFIG file are listed in the
-#                CONFIGURATION section
-#
-#
 # CONFIGURATION
 #
 # A valid config file can take any name, with or without spaces, and can
@@ -171,6 +163,18 @@ check_valid_ssh_path()
   fi
 }
 
+display_wrapper_help()
+{
+  printf -- "git-ssh\n"
+  echo
+  printf -- "options\n"
+  echo
+  printf -- "    --ssh CONFIG      The name identifier of a config\n"
+  printf -- "                      file in the ${config_dir}.\n"
+  printf -- "    --config-dir DIR  The path to the directory where configs\n"
+  printf -- "                      are stored\n"
+}
+
 # Options to passthrough to git
 # KLUDGE not currently implemented
 #        See below in the switch statement
@@ -220,6 +224,11 @@ for option in "$@"; do
     "--config-dir")
       prepare_config_dir_option
       shift
+      ;;
+    "--wrapper-help")
+      display_wrapper_help
+      # The help call ends the script
+      exit 0
       ;;
     *)
       # git_options="$1 ${git_options}"
