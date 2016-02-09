@@ -60,6 +60,9 @@ ssh_key=""
 # The ssh key git should use
 git_ssh_path=""
 
+# No argument options
+should_display_configs=0
+
 # Parameters for creating a new configuration
 create_config_name=""
 create_config_path=""
@@ -179,11 +182,30 @@ remove_config_if_wanted()
         printf -- "Config does not exist: ${target}\n"
         echo
       fi
+      unset target
     else
       printf -- "ERROR: No config specified.\n"
       return 2
     fi
   fi
+}
+
+display_configs()
+{
+  check_config_dir_conditions || return 1
+  check_for_binary ls
+  check_for_binary wc
+  check_for_binary head
+  local count=$(ls -l "${config_dir}" | wc -l)
+  printf -- "Config directory: ${config_dir}\n"
+  printf -- "Number of configs: ${count}\n"
+  for config in "${config_dir}"/*; do
+    printf -- "[$(basename ${config})]\n"
+    printf -- "Path: $(cat ${config} | head -n 1)\n"
+    echo
+  done
+  unset count
+  echo
 }
 
 check_config_dir_conditions()
@@ -345,6 +367,10 @@ for option in "$@"; do
       prepare_remove_config_name
       shift
       ;;
+    "--display-configs")
+      should_display_configs=1
+      shift
+      ;;
     "--wrapper-help")
       display_wrapper_help
       # The help call ends the script
@@ -365,6 +391,10 @@ remove_config_if_wanted || exit 1
 
 # Create the config if requested
 create_config_if_wanted || exit 1
+
+if [ "${should_display_configs}" -ne 0 ]; then
+  display_configs || exit 1
+fi
 
 
 # Wrapper does not play a part
