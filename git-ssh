@@ -360,11 +360,12 @@ for option in "$@"; do
   esac
 done
 
+# Remove the config if requested
+remove_config_if_wanted || exit 1
+
 # Create the config if requested
 create_config_if_wanted || exit 1
 
-# Remove the config if requested
-remove_config_if_wanted || exit 1
 
 # Wrapper does not play a part
 if [ "${handled_by_wrapper}" -eq 0 ]; then
