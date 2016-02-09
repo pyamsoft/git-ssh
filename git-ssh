@@ -112,14 +112,24 @@ fi
 # this hard requirement must stay.
 case "$1" in
   "--ssh")
-    ssh_key="$2"
-
     # Eat the current $1
     shift
 
-    # Eat the current $2
     # Check if it exists
     if [ ! -z "$1" ]; then
+      # Eat the current $1
+      ssh_key="$1"
+      shift
+    fi
+    ;;
+  "--config-dir")
+    # Eat the current $1
+    shift
+
+    # Check if it exists
+    if [ ! -z "$1" ]; then
+      # Eat the current $1
+      config_dir="$1"
       shift
     fi
     ;;
