@@ -64,9 +64,13 @@ git_ssh_path=""
 create_config_name=""
 create_config_path=""
 
+# Parameters for removing a config
+remove_config_name=""
+
 # Is this call to git going to be handled by the wrapper
 handled_by_wrapper=0
 handled_by_create=0
+handled_by_remove=0
 
 # These are set when the next passed in argument is expected
 # to be a valid parameter
@@ -74,6 +78,7 @@ expect_ssh_key=0
 expect_config_dir=0
 expect_create_config_name=0
 expect_create_config_path=0
+expect_remove_config_name=0
 
 # Check the environment path for the given binary, exit if it is not found
 check_for_binary()
@@ -112,6 +117,12 @@ handle_create_config_path()
   create_config_path="$1"
 }
 
+handle_remove_config_name()
+{
+  expect_remove_config_name=0
+  remove_config_name="$1"
+}
+
 prepare_ssh_key_option()
 {
   # Handle this call to git with the wrapper
@@ -143,10 +154,33 @@ create_config_if_wanted()
       check_config_dir_conditions || return 1
       printf -- "${create_config_path}\n" > "${config_dir}/${create_config_name}"
       printf -- "Create new config: ${create_config_name}\n"
+      echo
     else
       printf -- "ERROR: Cannot create new config.\n"
       printf -- "    name: ${create_config_name}\n"
       printf -- "    path: ${create_config_path}\n"
+      return 2
+    fi
+  fi
+}
+
+remove_config_if_wanted()
+{
+  if [ "${handled_by_remove}" -ne 0 ]; then
+    if [ ! -z "${remove_config_name}" ]; then
+      check_config_dir_conditions || return 1
+      check_for_binary rm
+      local target="${config_dir}/${remove_config_name}"
+      if [ -e "${target}" ]; then
+        rm -f "${target}"
+        printf -- "Remove config: ${target}\n"
+        echo
+      else
+        printf -- "Config does not exist: ${target}\n"
+        echo
+      fi
+    else
+      printf -- "ERROR: No config specified.\n"
       return 2
     fi
   fi
@@ -218,6 +252,17 @@ prepare_create_config_option()
   fi
 }
 
+prepare_remove_config_name()
+{
+  if [ "${handled_by_remove}" -ne 1 ]; then
+    handled_by_remove=1
+  fi
+
+  if [ "${expect_remove_config_name}" -ne 1 ]; then
+    expect_remove_config_name=1
+  fi
+}
+
 display_wrapper_help()
 {
   printf -- "git-ssh\n"
@@ -277,6 +322,10 @@ for option in "$@"; do
     handle_create_config_path "${option}"
     shift
     continue
+  elif [ "${expect_remove_config_name}" -ne 0 ]; then
+    handle_remove_config_name "${option}"
+    shift
+    continue
   fi
 
   case "${option}" in
@@ -290,6 +339,10 @@ for option in "$@"; do
       ;;
     "--create-config")
       prepare_create_config_option
+      shift
+      ;;
+    "--remove-config")
+      prepare_remove_config_name
       shift
       ;;
     "--wrapper-help")
@@ -309,6 +362,9 @@ done
 
 # Create the config if requested
 create_config_if_wanted || exit 1
+
+# Remove the config if requested
+remove_config_if_wanted || exit 1
 
 # Wrapper does not play a part
 if [ "${handled_by_wrapper}" -eq 0 ]; then
