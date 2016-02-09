@@ -81,6 +81,11 @@ ssh_key=""
 # Is this call to git going to be handled by the wrapper
 handled_by_wrapper=0
 
+# These are set when the next passed in argument is expected
+# to be a valid parameter
+expect_ssh_key=0
+expect_config_dir=0
+
 # Options to passthrough to git
 # KLUDGE not currently implemented
 #        See below in the switch statement
@@ -100,60 +105,66 @@ if [ -z "$1" ]; then
   exec "${_git}" "$@"
 fi
 
-# Due to parsing limitations, the --ssh must be the first option specified
-# If it is not, we assume it is not requested
+# Super hacky option parsing
+# Loop through the options passed in var $@
+# If the option is a valid case in the switch statement
+# it will set an expected_$$ flag
 #
-# This is because git has issues with us snatching away the $@ variable, as
-# for example assume that we store vars into a temporary variable
-#
-# ${git_options}="status help clone"
-#
-# Git will fail saying that there is no valid option 'status help clone'
-# It will properly handle the status option when using the $@ variable however.
-#
-# Unless a work around is found to allow git to parse individual arguments,
-# this hard requirement must stay.
-case "$1" in
-  "--ssh")
-    # Handle this call to git with the wrapper
-    if [ "${handled_by_wrapper}" -ne 1 ]; then
-      handled_by_wrapper=1
-    fi
+# If the flag is set, the next variable passed in is expected to be
+# a valid parameter for the given option.
+# The option call --${opt} and its argument ${arg} are shifted out of the
+# array $@ so that only the options passed to git are left
+for option in "$@"; do
 
-    # Eat the current $1
+  # Check for any expected options
+  if [ "${expect_ssh_key}" -ne 0 ]; then
+    expect_ssh_key=0
+    ssh_key="${option}"
     shift
-
-    # Check if it exists
-    if [ ! -z "$1" ]; then
-      # Eat the current $1
-      ssh_key="$1"
-      shift
-    fi
-    ;;
-  "--config-dir")
-    # Handle this call to git with the wrapper
-    if [ "${handled_by_wrapper}" -ne 1 ]; then
-      handled_by_wrapper=1
-    fi
-
-    # Eat the current $1
+    continue
+  elif [ "${expect_config_dir}" -ne 0 ]; then
+    expect_config_dir=0
+    config_dir="${option}"
     shift
+    continue
+  fi
 
-    # Check if it exists
-    if [ ! -z "$1" ]; then
+  case "${option}" in
+    "--ssh")
+      # Handle this call to git with the wrapper
+      if [ "${handled_by_wrapper}" -ne 1 ]; then
+        handled_by_wrapper=1
+      fi
+
       # Eat the current $1
-      config_dir="$1"
       shift
-    fi
-    ;;
-  *)
-    # git_options="$1 ${git_options}"
-    # shift
 
-    # KLUDGE Limiations
-    # Do nothing
-    ;;
-esac
+      if [ "${expect_ssh_key}" -ne 1 ]; then
+        expect_ssh_key=1
+      fi
+      ;;
+    "--config-dir")
+      # Handle this call to git with the wrapper
+      if [ "${handled_by_wrapper}" -ne 1 ]; then
+        handled_by_wrapper=1
+      fi
+
+      # Eat the current $1
+      shift
+
+      if [ "${expect_config_dir}" -ne 1 ]; then
+        expect_config_dir=1
+      fi
+      ;;
+    *)
+      # git_options="$1 ${git_options}"
+      # shift
+
+      # KLUDGE Limiations
+      # Do nothing
+      ;;
+  esac
+done
 
 # Wrapper does not play a part
 if [ "${handled_by_wrapper}" -eq 0 ]; then
