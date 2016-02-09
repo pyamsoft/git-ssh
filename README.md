@@ -36,6 +36,18 @@ CONFIG files are by default searched for in the
 ${config_dir} location, which defaults to
 $XDG_CONFIG_HOME/git-ssh. This directory is not created by default.
 
+## Usability
+
+To make git-ssh more friendly to the git user, the following can be performed  
+in the shell to allow for shell completion among other nice things:  
+```
+alias git="/path/to/git-ssh"  
+```
+This will make all calls to git resolve first to git-ssh in the interactive  
+shell. If you wish to take this a step further, you can create a symlink to  
+git-ssh in your path before git itself is resolved, and then any program  
+which expects git will now work with git-ssh.  
+
 ## Limitations
 
 Due to parsing limitations, the --ssh must be the first option specified  
