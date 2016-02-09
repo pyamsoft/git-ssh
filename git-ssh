@@ -24,7 +24,7 @@
 # valid either in the context of the script or the git binary itself
 
 # git-ssh
-version="0.1.0"
+version="0.2.0"
 
 # options
 # The script currently handles the following option(s):
