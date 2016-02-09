@@ -56,19 +56,6 @@ version="0.1.0"
 # In example config file <"second key">
 # ${HOME}/.ssh/id_dsa
 
-
-# Check the environment path for the given binary, exit if it is not found
-check_for_binary()
-{
-  if ! which "$1" > /dev/null 2>&1; then
-    printf -- "The '%s' binary is required for this script.\n" "$1"
-    printf -- "Please install '%s' onto your system.\n" "$1"
-
-    # Error code 1: Missing binary
-    exit 1
-  fi
-}
-
 # Location of the actual git binary
 _git="/usr/bin/git"
 
@@ -78,6 +65,9 @@ config_dir="$XDG_CONFIG_HOME/git-ssh"
 # The ssh key requested
 ssh_key=""
 
+# The ssh key git should use
+git_ssh_path=""
+
 # Is this call to git going to be handled by the wrapper
 handled_by_wrapper=0
 
@@ -85,6 +75,101 @@ handled_by_wrapper=0
 # to be a valid parameter
 expect_ssh_key=0
 expect_config_dir=0
+
+# Check the environment path for the given binary, exit if it is not found
+check_for_binary()
+{
+  if ! which "$1" > /dev/null 2>&1; then
+    printf -- "The '%s' binary is required for this script.\n" "$1"
+    printf -- "Please install '%s' onto your system.\n" "$1"
+    exit 1
+  fi
+}
+
+# Sets the ssh_key
+handle_ssh_key_option()
+{
+  expect_ssh_key=0
+  ssh_key="$1"
+}
+
+# Sets the config_dir
+handle_config_dir_option()
+{
+  expect_config_dir=0
+  config_dir="$1"
+}
+
+prepare_ssh_key_option()
+{
+  # Handle this call to git with the wrapper
+  if [ "${handled_by_wrapper}" -ne 1 ]; then
+    handled_by_wrapper=1
+  fi
+
+  if [ "${expect_ssh_key}" -ne 1 ]; then
+    expect_ssh_key=1
+  fi
+}
+
+prepare_config_dir_option()
+{
+  # Handle this call to git with the wrapper
+  if [ "${handled_by_wrapper}" -ne 1 ]; then
+    handled_by_wrapper=1
+  fi
+
+  if [ "${expect_config_dir}" -ne 1 ]; then
+    expect_config_dir=1
+  fi
+}
+
+check_wrapper_conditions()
+{
+  # No config dir specified
+  if [ -z "${config_dir}" ]; then
+    printf -- "ERROR: No config_dir specified\n"
+    return 1
+  fi
+
+  # No ssh key was requested
+  if [ -z "${ssh_key}" ]; then
+    printf -- "ERROR: No ssh_key was requested\n"
+    return 2
+  fi
+
+  # An ssh key is requested
+  # Check for the existance of the config file
+  if [ ! -d ${config_dir} ]; then
+    printf -- "ERROR: config_dir does not exist at:  ${config_dir}\n"
+    return 3
+  fi
+}
+
+read_config_file()
+{
+  # Path expanstion via shell
+  for config in "${config_dir}"/*; do
+
+    # Make sure we've found a config file, not folder
+    if [ ! -d "${config}" ]; then
+      # Read the config if it is the one we want
+      if [ "$(basename ${config})" = "${ssh_key}" ]; then
+        git_ssh_path=$(cat "$config")
+        break
+      fi
+    fi
+  done
+}
+
+check_valid_ssh_path()
+{
+  # If no matching key was found
+  if [ -z "${git_ssh_path}" ]; then
+    printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
+    return 1
+  fi
+}
 
 # Options to passthrough to git
 # KLUDGE not currently implemented
@@ -118,43 +203,23 @@ for option in "$@"; do
 
   # Check for any expected options
   if [ "${expect_ssh_key}" -ne 0 ]; then
-    expect_ssh_key=0
-    ssh_key="${option}"
+    handle_ssh_key_option "${option}"
     shift
     continue
   elif [ "${expect_config_dir}" -ne 0 ]; then
-    expect_config_dir=0
-    config_dir="${option}"
+    handle_config_dir_option "${option}"
     shift
     continue
   fi
 
   case "${option}" in
     "--ssh")
-      # Handle this call to git with the wrapper
-      if [ "${handled_by_wrapper}" -ne 1 ]; then
-        handled_by_wrapper=1
-      fi
-
-      # Eat the current $1
+      prepare_ssh_key_option
       shift
-
-      if [ "${expect_ssh_key}" -ne 1 ]; then
-        expect_ssh_key=1
-      fi
       ;;
     "--config-dir")
-      # Handle this call to git with the wrapper
-      if [ "${handled_by_wrapper}" -ne 1 ]; then
-        handled_by_wrapper=1
-      fi
-
-      # Eat the current $1
+      prepare_config_dir_option
       shift
-
-      if [ "${expect_config_dir}" -ne 1 ]; then
-        expect_config_dir=1
-      fi
       ;;
     *)
       # git_options="$1 ${git_options}"
@@ -172,51 +237,13 @@ if [ "${handled_by_wrapper}" -eq 0 ]; then
   exec "${_git}" "$@"
 fi
 
-# No config dir specified
-if [ -z "${config_dir}" ]; then
-  printf -- "ERROR: No config_dir specified\n"
-  exit 2
-fi
 
-# No ssh key was requested
-if [ -z "${ssh_key}" ]; then
-  printf -- "ERROR: No ssh_key was requested\n"
-  exit 3
-fi
+# Make sure everything is set
+check_wrapper_conditions || exit 1
 
-# An ssh key is requested
-
-# Check for the existance of the config file
-if [ ! -d ${config_dir} ]; then
-  printf -- "ERROR: config_dir does not exist at:  ${config_dir}\n"
-  exit 4
-fi
-
-# The ssh key git should use
-git_ssh_path=""
-
-# Go into the config dir
-
-# Path expanstion via shell
-for config in "${config_dir}"/*; do
-
-  # Make sure we've found a config file, not folder
-  if [ ! -d "${config}" ]; then
-    # Read the config if it is the one we want
-    if [ "$(basename ${config})" = "${ssh_key}" ]; then
-      git_ssh_path=$(cat "$config")
-      break
-    fi
-  fi
-done
-
-# If no matching key was found
-if [ -z "${git_ssh_path}" ]; then
-  printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
-
-  # Error code 3: Bad key requested
-  exit 3
-fi
+# Read the config file requested and check its valid
+read_config_file
+check_valid_ssh_path || exit 2
 
 # Run git using the ssh key that was found
 # Git will handle any errors related to a bad path
