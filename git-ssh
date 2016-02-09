@@ -142,22 +142,24 @@ case "$1" in
     ;;
 esac
 
+# No config dir specified
+if [ -z "${config_dir}" ];then
+  printf -- "ERROR: No config_dir specified\n"
+  exit 2
+fi
+
 # No ssh key was requested
 if [ -z "${ssh_key}" ];then
-  # the call to exec will exit
-
-  # exec "${_git}" "${git_options}"
-  exec "${_git}" "$@"
+  printf -- "ERROR: No ssh_key was requested\n"
+  exit 3
 fi
 
 # An ssh key is requested
 
 # Check for the existance of the config file
 if [ ! -d ${config_dir} ]; then
-  printf -- "Please make sure the config dir exists at:  ${config_dir}\n"
-
-  # Error code 2: No config dir
-  exit 2
+  printf -- "Please make sure the config_dir exists at:  ${config_dir}\n"
+  exit 4
 fi
 
 # The ssh key git should use
