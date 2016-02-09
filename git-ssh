@@ -118,8 +118,10 @@ case "$1" in
     shift
 
     # Eat the current $2
-    shift
-
+    # Check if it exists
+    if [ ! -z "$1" ]; then
+      shift
+    fi
     ;;
   *)
     # git_options="$1 ${git_options}"
