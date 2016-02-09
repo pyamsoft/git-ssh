@@ -78,6 +78,9 @@ config_dir="$XDG_CONFIG_HOME/git-ssh"
 # The ssh key requested
 ssh_key=""
 
+# Is this call to git going to be handled by the wrapper
+handled_by_wrapper=0
+
 # Options to passthrough to git
 # KLUDGE not currently implemented
 #        See below in the switch statement
@@ -94,7 +97,7 @@ check_for_binary env
 # We have everything, let's go
 if [ -z "$1" ]; then
   # Just run git
-  exec "${_git}"
+  exec "${_git}" "$@"
 fi
 
 # Due to parsing limitations, the --ssh must be the first option specified
@@ -112,6 +115,11 @@ fi
 # this hard requirement must stay.
 case "$1" in
   "--ssh")
+    # Handle this call to git with the wrapper
+    if [ "${handled_by_wrapper}" -ne 1 ]; then
+      handled_by_wrapper=1
+    fi
+
     # Eat the current $1
     shift
 
@@ -123,6 +131,11 @@ case "$1" in
     fi
     ;;
   "--config-dir")
+    # Handle this call to git with the wrapper
+    if [ "${handled_by_wrapper}" -ne 1 ]; then
+      handled_by_wrapper=1
+    fi
+
     # Eat the current $1
     shift
 
@@ -142,14 +155,20 @@ case "$1" in
     ;;
 esac
 
+# Wrapper does not play a part
+if [ "${handled_by_wrapper}" -eq 0 ]; then
+  # Just run git
+  exec "${_git}" "$@"
+fi
+
 # No config dir specified
-if [ -z "${config_dir}" ];then
+if [ -z "${config_dir}" ]; then
   printf -- "ERROR: No config_dir specified\n"
   exit 2
 fi
 
 # No ssh key was requested
-if [ -z "${ssh_key}" ];then
+if [ -z "${ssh_key}" ]; then
   printf -- "ERROR: No ssh_key was requested\n"
   exit 3
 fi
@@ -158,7 +177,7 @@ fi
 
 # Check for the existance of the config file
 if [ ! -d ${config_dir} ]; then
-  printf -- "Please make sure the config_dir exists at:  ${config_dir}\n"
+  printf -- "ERROR: config_dir does not exist at:  ${config_dir}\n"
   exit 4
 fi
 
@@ -182,7 +201,7 @@ done
 
 # If no matching key was found
 if [ -z "${git_ssh_path}" ]; then
-  printf -- "No SSH key found which matches the requested key: ${ssh_key}\n"
+  printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
 
   # Error code 3: Bad key requested
   exit 3
