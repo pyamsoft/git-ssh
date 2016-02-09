@@ -61,7 +61,7 @@ ssh_key=""
 git_ssh_path=""
 
 # No argument options
-should_display_configs=0
+should_list_configs=0
 
 # Parameters for creating a new configuration
 create_config_name=""
@@ -190,22 +190,22 @@ remove_config_if_wanted()
   fi
 }
 
-display_configs()
+list_configs()
 {
   check_config_dir_conditions || return 1
   check_for_binary ls
   check_for_binary wc
   check_for_binary head
-  local count=$(ls -l "${config_dir}" | wc -l)
+  local count=$(ls -1 "${config_dir}" | wc -l)
   printf -- "Config directory: ${config_dir}\n"
   printf -- "Number of configs: ${count}\n"
+  echo
   for config in "${config_dir}"/*; do
     printf -- "[$(basename ${config})]\n"
     printf -- "Path: $(cat ${config} | head -n 1)\n"
     echo
   done
   unset count
-  echo
 }
 
 check_config_dir_conditions()
@@ -285,7 +285,7 @@ prepare_remove_config_name()
   fi
 }
 
-display_wrapper_help()
+list_wrapper_help()
 {
   printf -- "git-ssh\n"
   echo
@@ -367,12 +367,12 @@ for option in "$@"; do
       prepare_remove_config_name
       shift
       ;;
-    "--display-configs")
-      should_display_configs=1
+    "--list-configs")
+      should_list_configs=1
       shift
       ;;
     "--wrapper-help")
-      display_wrapper_help
+      list_wrapper_help
       # The help call ends the script
       exit 0
       ;;
@@ -392,8 +392,9 @@ remove_config_if_wanted || exit 1
 # Create the config if requested
 create_config_if_wanted || exit 1
 
-if [ "${should_display_configs}" -ne 0 ]; then
-  display_configs || exit 1
+if [ "${should_list_configs}" -ne 0 ]; then
+  list_configs || exit 1
+  exit 1
 fi
 
 
