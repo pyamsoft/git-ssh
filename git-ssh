@@ -60,13 +60,20 @@ ssh_key=""
 # The ssh key git should use
 git_ssh_path=""
 
+# Parameters for creating a new configuration
+create_config_name=""
+create_config_path=""
+
 # Is this call to git going to be handled by the wrapper
 handled_by_wrapper=0
+handled_by_create=0
 
 # These are set when the next passed in argument is expected
 # to be a valid parameter
 expect_ssh_key=0
 expect_config_dir=0
+expect_create_config_name=0
+expect_create_config_path=0
 
 # Check the environment path for the given binary, exit if it is not found
 check_for_binary()
@@ -90,6 +97,19 @@ handle_config_dir_option()
 {
   expect_config_dir=0
   config_dir="$1"
+}
+
+handle_create_config_name()
+{
+  expect_create_config_name=0
+  expect_create_config_path=1
+  create_config_name="$1"
+}
+
+handle_create_config_path()
+{
+  expect_create_config_path=0
+  create_config_path="$1"
 }
 
 prepare_ssh_key_option()
@@ -116,7 +136,23 @@ prepare_config_dir_option()
   fi
 }
 
-check_wrapper_conditions()
+create_config_if_wanted()
+{
+  if [ "${handled_by_create}" -ne 0 ]; then
+    if [ ! -z "${create_config_name}" ] && [ ! -z "${create_config_path}" ]; then
+      check_config_dir_conditions || return 1
+      printf -- "${create_config_path}\n" > "${config_dir}/${create_config_name}"
+      printf -- "Create new config: ${create_config_name}\n"
+    else
+      printf -- "ERROR: Cannot create new config.\n"
+      printf -- "    name: ${create_config_name}\n"
+      printf -- "    path: ${create_config_path}\n"
+      return 2
+    fi
+  fi
+}
+
+check_config_dir_conditions()
 {
   # No config dir specified
   if [ -z "${config_dir}" ]; then
@@ -124,18 +160,26 @@ check_wrapper_conditions()
     return 1
   fi
 
-  # No ssh key was requested
-  if [ -z "${ssh_key}" ]; then
-    printf -- "ERROR: No ssh_key was requested\n"
-    return 2
-  fi
-
-  # An ssh key is requested
   # Check for the existance of the config file
   if [ ! -d ${config_dir} ]; then
     printf -- "ERROR: config_dir does not exist at:  ${config_dir}\n"
-    return 3
+    return 2
   fi
+}
+
+check_ssh_key_conditions()
+{
+  # No ssh key was requested
+  if [ -z "${ssh_key}" ]; then
+    printf -- "ERROR: No ssh_key was requested\n"
+    return 1
+  fi
+}
+
+check_wrapper_conditions()
+{
+  check_config_dir_conditions || return 1
+  check_ssh_key_conditions || return 2
 }
 
 read_config_file()
@@ -160,6 +204,17 @@ check_valid_ssh_path()
   if [ -z "${git_ssh_path}" ]; then
     printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
     return 1
+  fi
+}
+
+prepare_create_config_option()
+{
+  if [ "${handled_by_create}" -ne 1 ]; then
+    handled_by_create=1
+  fi
+
+  if [ "${expect_create_config_name}" -ne 1 ]; then
+    expect_create_config_name=1
   fi
 }
 
@@ -214,6 +269,14 @@ for option in "$@"; do
     handle_config_dir_option "${option}"
     shift
     continue
+  elif [ "${expect_create_config_name}" -ne 0 ]; then
+    handle_create_config_name "${option}"
+    shift
+    continue
+  elif [ "${expect_create_config_path}" -ne 0 ]; then
+    handle_create_config_path "${option}"
+    shift
+    continue
   fi
 
   case "${option}" in
@@ -223,6 +286,10 @@ for option in "$@"; do
       ;;
     "--config-dir")
       prepare_config_dir_option
+      shift
+      ;;
+    "--create-config")
+      prepare_create_config_option
       shift
       ;;
     "--wrapper-help")
@@ -240,19 +307,21 @@ for option in "$@"; do
   esac
 done
 
+# Create the config if requested
+create_config_if_wanted || exit 1
+
 # Wrapper does not play a part
 if [ "${handled_by_wrapper}" -eq 0 ]; then
   # Just run git
   exec "${_git}" "$@"
 fi
 
-
 # Make sure everything is set
-check_wrapper_conditions || exit 1
+check_wrapper_conditions || exit 2
 
 # Read the config file requested and check its valid
 read_config_file
-check_valid_ssh_path || exit 2
+check_valid_ssh_path || exit 3
 
 # Run git using the ssh key that was found
 # Git will handle any errors related to a bad path
