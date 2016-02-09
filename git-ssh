@@ -152,15 +152,14 @@ fi
 git_ssh_path=""
 
 # Go into the config dir
-cd "${config_dir}"
 
 # Path expanstion via shell
-for config in *; do
+for config in "${config_dir}"/*; do
 
   # Make sure we've found a config file, not folder
   if [ ! -d "${config}" ]; then
     # Read the config if it is the one we want
-    if [ "${config}" = "${ssh_key}" ]; then
+    if [ "$(basename ${config})" = "${ssh_key}" ]; then
       git_ssh_path=$(cat "$config")
       break
     fi
