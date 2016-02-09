@@ -24,7 +24,7 @@
 # valid either in the context of the script or the git binary itself
 
 # git-ssh
-version="0.2.0"
+version="0.3.0"
 
 # CONFIGURATION
 #
@@ -287,14 +287,22 @@ prepare_remove_config_name()
 
 list_wrapper_help()
 {
-  printf -- "git-ssh\n"
+  printf -- "git-ssh [${version}]\n"
   echo
   printf -- "options\n"
   echo
-  printf -- "    --ssh CONFIG      The name identifier of a config\n"
-  printf -- "                      file in the ${config_dir}.\n"
-  printf -- "    --config-dir DIR  The path to the directory where configs\n"
-  printf -- "                      are stored\n"
+  printf -- "  --ssh CONFIG               The name identifier of a config file in the \${config_dir}.\n"
+  echo
+  printf -- "  --config-dir DIR           The path to the directory where configs are stored.\n"
+  echo
+  printf -- "  --create-config NAME PATH  Create a config called NAME with\n"
+  printf -- "                             the path PATH. Does not stop operation following completion.\n"
+  echo
+  printf -- "  --remove-config NAME       Remove the config specified by NAME.\n"
+  printf -- "                             Does not stop operation following completion.\n"
+  echo
+  printf -- "  --list-configs             Lists the contents of the \${config_dir}.\n"
+  printf -- "                             Stops operation following completion.\n"
 }
 
 # Options to passthrough to git
