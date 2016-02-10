@@ -4,11 +4,34 @@ An ssh-key selection wrapper for git
 ## Usage  
 ### Options
 The script currently handles the following option(s):  
+```
 
---ssh CONFIG
+  --ssh CONFIG
 
-The name identifier of a config file in the ${config_dir}  
-The contents expected in the CONFIG file are listed in the CONFIGURATION section  
+  The name identifier of a config file in the ${config_dir}  
+  The contents expected in the CONFIG file are listed in the CONFIGURATION  
+  section  
+
+  --config-dir DIR
+
+  The path to the directory where configs are stored.
+
+  --create-config NAME PATH
+
+  Create a config called NAME with the path PATH.  
+  Does not stop operation following completion  
+
+  --remove-config NAME
+
+  Remove the config specified by NAME.  
+  Does not stop operation following completion  
+
+  --list-configs
+
+  Lists the contents of the ${config_dir}  
+  Stops operation following completion  
+
+```
 
 ### Configuration
 
@@ -50,8 +73,8 @@ which expects git will now work with git-ssh.
 
 ## Limitations
 
-Due to parsing limitations, the --ssh must be the first option specified  
-If it is not, we assume it is not requested.  
+Due to parsing limitations, any options to git-ssh must be requested before  
+the first git related command.
 
 This is because git has issues with us snatching away the $@ variable, as  
 for example assume that we store vars into a temporary variable  
@@ -61,6 +84,8 @@ ${git_options}="status help clone"
 
 Git will fail saying that there is no valid option 'status help clone'  
 It will properly handle the status option when using the $@ variable however.  
+As such we use a very hacky work around to parse and remove arguments from  
+the $@ variable, but because of this we have the hard requirement above.
 
 Unless a work around is found to allow git to parse individual arguments,  
 this hard requirement must stay.  
