@@ -292,17 +292,16 @@ list_wrapper_help()
   printf -- "options\n"
   echo
   printf -- "  --ssh CONFIG               The name identifier of a config file in the \${config_dir}.\n"
-  echo
   printf -- "  --config-dir DIR           The path to the directory where configs are stored.\n"
-  echo
   printf -- "  --create-config NAME PATH  Create a config called NAME with\n"
   printf -- "                             the path PATH. Does not stop operation following completion.\n"
-  echo
   printf -- "  --remove-config NAME       Remove the config specified by NAME.\n"
   printf -- "                             Does not stop operation following completion.\n"
-  echo
   printf -- "  --list-configs             Lists the contents of the \${config_dir}.\n"
   printf -- "                             Stops operation following completion.\n"
+  printf -- "  --wrapper-help             Prints only this help block\n"
+  printf -- "  --help                     Prints this help block followed by git --help\n"
+  echo
 }
 
 # Options to passthrough to git
@@ -383,6 +382,10 @@ for option in "$@"; do
       list_wrapper_help
       # The help call ends the script
       exit 0
+      ;;
+    "--help")
+      list_wrapper_help
+      exec "${_git}" --help
       ;;
     *)
       # git_options="$1 ${git_options}"
