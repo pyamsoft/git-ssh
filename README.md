@@ -71,6 +71,11 @@ shell. If you wish to take this a step further, you can create a symlink to
 git-ssh in your path before git itself is resolved, and then any program  
 which expects git will now work with git-ssh.  
 
+Note that overriding the environment to resolve first to git-ssh when calling  
+git may pose a security risk in unforseen situations. This project does not  
+guarantee the safety or stability of the system in the event that the  
+environment is overrideen to use git-ssh for all git related calls
+
 ## Questions
 
 Questions or issues should be either posted in the issue section of this  
