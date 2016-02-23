@@ -50,6 +50,7 @@ version="0.3.1"
 
 # Location of the actual git binary
 _git="/usr/bin/git"
+_git_args=""
 
 # Location of the dir with configs stored
 config_dir="$XDG_CONFIG_HOME/git-ssh"
@@ -388,8 +389,13 @@ for option in "$@"; do
       exec "${_git}" --help
       ;;
     *)
+      if [ -z "${_git_args}" ]; then
+        _git_args="'${1}'"
+      else
+        _git_args="${_git_args} '${1}'"
+      fi
       # git_options="$1 ${git_options}"
-      # shift
+      shift
 
       # KLUDGE Limiations
       # Do nothing
@@ -412,7 +418,9 @@ fi
 # Wrapper does not play a part
 if [ "${handled_by_wrapper}" -eq 0 ]; then
   # Just run git
-  exec "${_git}" "$@"
+  # We use eval to convert the raw strings into arguments for git
+  # This is not the safest solution but currently appears to work
+  eval exec "${_git}" "${_git_args}"
 fi
 
 # Make sure everything is set
@@ -427,6 +435,11 @@ check_valid_ssh_path || exit 3
 # to an SSH key, just as if you had entered this env var yourself
 
 # exec env GIT_SSH_COMMAND="ssh -i ${git_ssh_path}" "${_git}" "${git_options}"
-exec env GIT_SSH_COMMAND="ssh -i ${git_ssh_path}" "${_git}" "$@"
+# We use eval to convert the raw strings into arguments for git
+# This is not the safest solution but currently appears to work
+#
+# Escape the double quotes so that the shell does not attempt to parse the
+# options given to GIT_SSH_COMMAND
+eval exec env GIT_SSH_COMMAND=\"ssh -i ${git_ssh_path}\" "${_git}" "${_git_args}"
 
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
