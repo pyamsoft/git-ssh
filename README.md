@@ -71,25 +71,6 @@ shell. If you wish to take this a step further, you can create a symlink to
 git-ssh in your path before git itself is resolved, and then any program  
 which expects git will now work with git-ssh.  
 
-## Limitations
-
-Due to parsing limitations, any options to git-ssh must be requested before  
-the first git related command.
-
-This is because git has issues with us snatching away the $@ variable, as  
-for example assume that we store vars into a temporary variable  
-```
-${git_options}="status help clone"  
-```
-
-Git will fail saying that there is no valid option 'status help clone'  
-It will properly handle the status option when using the $@ variable however.  
-As such we use a very hacky work around to parse and remove arguments from  
-the $@ variable, but because of this we have the hard requirement above.
-
-Unless a work around is found to allow git to parse individual arguments,  
-this hard requirement must stay.  
-
 ## Questions
 
 Questions or issues should be either posted in the issue section of this  
