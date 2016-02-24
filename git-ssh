@@ -479,6 +479,6 @@ check_valid_ssh_path || exit 3
 #
 # Escape the GIT_SSH_COMMAND with single quotes to allow paths with spaces to
 # be passed through
-eval exec env GIT_SSH_COMMAND="ssh -i \"${git_ssh_path}\" ${ssh_args}" "${_git}" "${git_args}"
+eval exec env GIT_SSH_COMMAND="'ssh -i \"${git_ssh_path}\" ${ssh_args}'" "${_git}" "${git_args}"
 
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
