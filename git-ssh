@@ -466,7 +466,7 @@ for option in "$@"; do
       exec "${_git}" --help
       ;;
     *)
-      log "Sanitize raw git argument: '$1'"
+      log "Sanitize raw git argument: \"$1\""
       if [ -z "${git_args}" ]; then
         git_args="\"${1}\""
       else
