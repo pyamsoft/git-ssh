@@ -12,6 +12,10 @@ The script currently handles the following option(s):
   The contents expected in the CONFIG file are listed in the CONFIGURATION  
   section  
 
+  --ssh-args COMMA-SEPERATED-OPTIONS
+
+  A comma seperated list of options to pass to the invocation of ssh.
+
   --config-dir DIR
 
   The path to the directory where configs are stored.
