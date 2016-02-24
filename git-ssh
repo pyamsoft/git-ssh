@@ -202,8 +202,8 @@ list_configs()
   printf -- "Number of configs: ${count}\n"
   echo
   for config in "${config_dir}"/*; do
-    printf -- "[$(basename ${config})]\n"
-    printf -- "Path: $(cat ${config} | head -n 1)\n"
+    printf -- "[$(basename "${config}")]\n"
+    printf -- "Path: $(cat "${config}" | head -n 1)\n"
     echo
   done
   unset count
