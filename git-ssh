@@ -50,13 +50,14 @@ version="0.4.1"
 
 # Location of the actual git binary
 _git="/usr/bin/git"
-_git_args=""
+git_args=""
 
 # Location of the dir with configs stored
 config_dir="$XDG_CONFIG_HOME/git-ssh"
 
 # The ssh key requested
 ssh_key=""
+ssh_args=""
 
 # The ssh key git should use
 git_ssh_path=""
@@ -83,6 +84,7 @@ expect_config_dir=0
 expect_create_config_name=0
 expect_create_config_path=0
 expect_remove_config_name=0
+expect_ssh_args=0
 
 # Check the environment path for the given binary, exit if it is not found
 check_for_binary()
@@ -127,6 +129,20 @@ handle_remove_config_name()
   remove_config_name="$1"
 }
 
+handle_ssh_args_option()
+{
+  expect_ssh_args=0
+  check_for_binary tr
+  local split_ssh_args="$(printf -- "$1" | tr "," "\n")"
+  for arg in ${split_ssh_args}; do
+    if [ -z "${ssh_args}" ]; then
+      ssh_args="${arg}"
+    else
+      ssh_args="${ssh_args} ${arg}"
+    fi
+  done
+}
+
 prepare_ssh_key_option()
 {
   # Handle this call to git with the wrapper
@@ -148,6 +164,18 @@ prepare_config_dir_option()
 
   if [ "${expect_config_dir}" -ne 1 ]; then
     expect_config_dir=1
+  fi
+}
+
+prepare_ssh_args()
+{
+  # Handle this call to git with the wrapper
+  if [ "${handled_by_wrapper}" -ne 1 ]; then
+    handled_by_wrapper=1
+  fi
+
+  if [ "${expect_ssh_args}" -ne 1 ]; then
+    expect_ssh_args=1
   fi
 }
 
@@ -248,7 +276,7 @@ read_config_file()
     if [ ! -d "${config}" ]; then
       # Read the config if it is the one we want
       if [ "$(basename ${config})" = "${ssh_key}" ]; then
-        git_ssh_path=$(cat "$config")
+        git_ssh_path=$(cat "${config}")
         break
       fi
     fi
@@ -356,6 +384,10 @@ for option in "$@"; do
     handle_remove_config_name "${option}"
     shift
     continue
+  elif [ "${expect_ssh_args}" -ne 0 ]; then
+    handle_ssh_args_option "${option}"
+    shift
+    continue
   fi
 
   case "${option}" in
@@ -375,6 +407,10 @@ for option in "$@"; do
       prepare_remove_config_name
       shift
       ;;
+    "--ssh-args")
+      prepare_ssh_args
+      shift
+      ;;
     "--list-configs")
       should_list_configs=1
       shift
@@ -389,10 +425,10 @@ for option in "$@"; do
       exec "${_git}" --help
       ;;
     *)
-      if [ -z "${_git_args}" ]; then
-        _git_args="'${1}'"
+      if [ -z "${git_args}" ]; then
+        git_args="'${1}'"
       else
-        _git_args="${_git_args} '${1}'"
+        git_args="${git_args} '${1}'"
       fi
       # git_options="$1 ${git_options}"
       shift
@@ -420,7 +456,7 @@ if [ "${handled_by_wrapper}" -eq 0 ]; then
   # Just run git
   # We use eval to convert the raw strings into arguments for git
   # This is not the safest solution but currently appears to work
-  eval exec "${_git}" "${_git_args}"
+  eval exec "${_git}" "${git_args}"
 fi
 
 # Make sure everything is set
@@ -434,12 +470,14 @@ check_valid_ssh_path || exit 3
 # Git will handle any errors related to a bad path
 # to an SSH key, just as if you had entered this env var yourself
 
-# exec env GIT_SSH_COMMAND="ssh -i ${git_ssh_path}" "${_git}" "${git_options}"
 # We use eval to convert the raw strings into arguments for git
 # This is not the safest solution but currently appears to work
 #
 # Escape the double quotes so that the shell does not attempt to parse the
 # options given to GIT_SSH_COMMAND
-eval exec env GIT_SSH_COMMAND=\"ssh -i ${git_ssh_path}\" "${_git}" "${_git_args}"
+#
+# Escape the GIT_SSH_COMMAND with single quotes to allow paths with spaces to
+# be passed through
+eval exec env GIT_SSH_COMMAND="'ssh -i \"${git_ssh_path}\" ${ssh_args}'" "${_git}" "${git_args}"
 
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
