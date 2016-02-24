@@ -12,9 +12,9 @@ The script currently handles the following option(s):
   The contents expected in the CONFIG file are listed in the CONFIGURATION  
   section  
 
-  --ssh-args COMMA-SEPERATED-OPTIONS
+  --ssh-args COMMA-SEPARATED-OPTIONS
 
-  A comma seperated list of options to pass to the invocation of ssh.
+  A comma separated list of options to pass to the invocation of ssh.t
 
   --config-dir DIR
 

@@ -321,7 +321,7 @@ list_wrapper_help()
   printf -- "options\n"
   echo
   printf -- "  --ssh CONFIG               The name identifier of a config file in the \${config_dir}.\n"
-  printf -- "  --ssh-args COMMA-OPTIONS   Comma seperated list of options to pass to ssh.\n"
+  printf -- "  --ssh-args COMMA-OPTIONS   Comma separated list of options to pass to ssh.\n"
   printf -- "  --config-dir DIR           The path to the directory where configs are stored.\n"
   printf -- "  --create-config NAME PATH  Create a config called NAME with\n"
   printf -- "                             the path PATH. Does not stop operation following completion.\n"
