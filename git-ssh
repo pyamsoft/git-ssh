@@ -64,6 +64,7 @@ git_ssh_path=""
 
 # No argument options
 should_list_configs=0
+wrapper_debug=0
 
 # Parameters for creating a new configuration
 create_config_name=""
@@ -86,6 +87,13 @@ expect_create_config_path=0
 expect_remove_config_name=0
 expect_ssh_args=0
 
+log()
+{
+  if [ "${wrapper_debug}" -ne 0 ]; then
+    printf -- "%s\n" "$1"
+  fi
+}
+
 # Check the environment path for the given binary, exit if it is not found
 check_for_binary()
 {
@@ -99,6 +107,7 @@ check_for_binary()
 # Sets the ssh_key
 handle_ssh_key_option()
 {
+  log "ssh_key set to '$1'"
   expect_ssh_key=0
   ssh_key="$1"
 }
@@ -106,12 +115,14 @@ handle_ssh_key_option()
 # Sets the config_dir
 handle_config_dir_option()
 {
+  log "config_dir set to '$1'"
   expect_config_dir=0
   config_dir="$1"
 }
 
 handle_create_config_name()
 {
+  log "create_config_name set to '$1'"
   expect_create_config_name=0
   expect_create_config_path=1
   create_config_name="$1"
@@ -119,12 +130,14 @@ handle_create_config_name()
 
 handle_create_config_path()
 {
+  log "create_config_path set to '$1'"
   expect_create_config_path=0
   create_config_path="$1"
 }
 
 handle_remove_config_name()
 {
+  log "remove_config_name set to '$1'"
   expect_remove_config_name=0
   remove_config_name="$1"
 }
@@ -141,16 +154,19 @@ handle_ssh_args_option()
       ssh_args="${ssh_args} ${arg}"
     fi
   done
+  log "ssh_args set to '${ssh_args}'"
 }
 
 prepare_ssh_key_option()
 {
   # Handle this call to git with the wrapper
   if [ "${handled_by_wrapper}" -ne 1 ]; then
+    log "This git call is handled by wrapper"
     handled_by_wrapper=1
   fi
 
   if [ "${expect_ssh_key}" -ne 1 ]; then
+    log "Expect ssh_key next"
     expect_ssh_key=1
   fi
 }
@@ -159,10 +175,12 @@ prepare_config_dir_option()
 {
   # Handle this call to git with the wrapper
   if [ "${handled_by_wrapper}" -ne 1 ]; then
+    log "This git call is handled by wrapper"
     handled_by_wrapper=1
   fi
 
   if [ "${expect_config_dir}" -ne 1 ]; then
+    log "Expect config_dir next"
     expect_config_dir=1
   fi
 }
@@ -171,10 +189,12 @@ prepare_ssh_args()
 {
   # Handle this call to git with the wrapper
   if [ "${handled_by_wrapper}" -ne 1 ]; then
+    log "This git call is handled by wrapper"
     handled_by_wrapper=1
   fi
 
   if [ "${expect_ssh_args}" -ne 1 ]; then
+    log "Expect ssh_args next"
     expect_ssh_args=1
   fi
 }
@@ -240,12 +260,14 @@ list_configs()
 check_config_dir_conditions()
 {
   # No config dir specified
+  log "Check for set config dir..."
   if [ -z "${config_dir}" ]; then
     printf -- "ERROR: No config_dir specified\n"
     return 1
   fi
 
   # Check for the existance of the config file
+  log "Check that config dir exists as a directory..."
   if [ ! -d ${config_dir} ]; then
     printf -- "ERROR: config_dir does not exist at:  ${config_dir}\n"
     return 2
@@ -255,6 +277,7 @@ check_config_dir_conditions()
 check_ssh_key_conditions()
 {
   # No ssh key was requested
+  log "Check that an ssh_key was requested..."
   if [ -z "${ssh_key}" ]; then
     printf -- "ERROR: No ssh_key was requested\n"
     return 1
@@ -263,6 +286,7 @@ check_ssh_key_conditions()
 
 check_wrapper_conditions()
 {
+  log "Check that wrapper can continue..."
   check_config_dir_conditions || return 1
   check_ssh_key_conditions || return 2
 }
@@ -270,15 +294,21 @@ check_wrapper_conditions()
 read_config_file()
 {
   # Path expanstion via shell
+  log "Find configs in ${config_dir}"
   for config in "${config_dir}"/*; do
 
     # Make sure we've found a config file, not folder
+    log "Check that ${config} is a file, not folder"
     if [ ! -d "${config}" ]; then
       # Read the config if it is the one we want
-      if [ "$(basename ${config})" = "${ssh_key}" ]; then
+      local base="$(basename "${config}")"
+      log "Check for match at (config): ${base} and (key): ${ssh_key}"
+      if [ "${base}" = "${ssh_key}" ]; then
         git_ssh_path=$(cat "${config}")
+        log "Set git_ssh_path to: ${git_ssh_path}"
         break
       fi
+      unset base
     fi
   done
 }
@@ -286,6 +316,7 @@ read_config_file()
 check_valid_ssh_path()
 {
   # If no matching key was found
+  log "Check for git_ssh_path: ${git_ssh_path}"
   if [ -z "${git_ssh_path}" ]; then
     printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
     return 1
@@ -295,10 +326,12 @@ check_valid_ssh_path()
 prepare_create_config_option()
 {
   if [ "${handled_by_create}" -ne 1 ]; then
+    log "This git call is handled by create"
     handled_by_create=1
   fi
 
   if [ "${expect_create_config_name}" -ne 1 ]; then
+    log "Expect create_config_name next..."
     expect_create_config_name=1
   fi
 }
@@ -306,10 +339,12 @@ prepare_create_config_option()
 prepare_remove_config_name()
 {
   if [ "${handled_by_remove}" -ne 1 ]; then
+    log "This git call is handled by remove"
     handled_by_remove=1
   fi
 
   if [ "${expect_remove_config_name}" -ne 1 ]; then
+    log "Expect remove_config_name next..."
     expect_remove_config_name=1
   fi
 }
@@ -416,6 +451,11 @@ for option in "$@"; do
       should_list_configs=1
       shift
       ;;
+    "--wrapper-debug")
+      wrapper_debug=1
+      log "Turn on wrapper debugging"
+      shift
+      ;;
     "--wrapper-help")
       list_wrapper_help
       # The help call ends the script
@@ -426,6 +466,7 @@ for option in "$@"; do
       exec "${_git}" --help
       ;;
     *)
+      log "Sanitize raw git argument: '$1'"
       if [ -z "${git_args}" ]; then
         git_args="\"${1}\""
       else
@@ -457,6 +498,7 @@ if [ "${handled_by_wrapper}" -eq 0 ]; then
   # Just run git
   # We use eval to convert the raw strings into arguments for git
   # This is not the safest solution but currently appears to work
+  log "Call does not request wrapper options, call git normally"
   eval "exec ${_git} ${git_args}"
 fi
 
@@ -479,6 +521,10 @@ check_valid_ssh_path || exit 3
 #
 # Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
 # and single quotes to be passed through
+log "Call requests wrapper options, call wrapper git"
+log "GIT_SSH_COMMAND='ssh -i ${git_ssh_path} ${ssh_args}'"
+log "GIT: ${_git}"
+log "ARGS: ${git_args}"
 eval "exec env GIT_SSH_COMMAND=\"ssh -i ${git_ssh_path} ${ssh_args}\" ${_git} ${git_args}"
 
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
