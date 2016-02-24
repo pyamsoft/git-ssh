@@ -49,11 +49,15 @@ Comments are not allowed in the config file, in any kind of syntax.
 Any variables in the config file will be interpreted by the shell.  
 
 Examples:  
-In example config file <rsa>  
+In example config file \<rsa\>  
+```
 ~/.ssh/id_rsa  
+```
 
-In example config file <"second key">  
+In example config file \<"second key"\>  
+```
 ${HOME}/.ssh/id_dsa  
+```
 
 CONFIG files are by default searched for in the
 ${config_dir} location, which defaults to
