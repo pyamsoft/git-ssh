@@ -457,7 +457,7 @@ if [ "${handled_by_wrapper}" -eq 0 ]; then
   # Just run git
   # We use eval to convert the raw strings into arguments for git
   # This is not the safest solution but currently appears to work
-  eval exec "${_git}" "${git_args}"
+  eval "exec ${_git} ${git_args}"
 fi
 
 # Make sure everything is set
@@ -477,8 +477,8 @@ check_valid_ssh_path || exit 3
 # Escape the double quotes so that the shell does not attempt to parse the
 # options given to GIT_SSH_COMMAND
 #
-# Escape the GIT_SSH_COMMAND with single quotes to allow paths with spaces to
-# be passed through
-eval exec env GIT_SSH_COMMAND="'ssh -i \"${git_ssh_path}\" ${ssh_args}'" "${_git}" "${git_args}"
+# Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
+# and single quotes to be passed through
+eval "exec env GIT_SSH_COMMAND=\"ssh -i ${git_ssh_path} ${ssh_args}\" ${_git} ${git_args}"
 
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
