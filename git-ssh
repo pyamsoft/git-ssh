@@ -26,27 +26,8 @@
 # git-ssh
 version="0.4.2"
 
-# CONFIGURATION
-#
-# A valid config file can take any name, with or without spaces, and can
-# have any extension, though normal convention is to have none. For any
-# config files with spaces in the name, they will need to be properly
-# escaped.
-#
-# Examples:     rsa    "second key"   github.ssh.key
-#
-# A valid config file consists of exactly one line of content: A path
-# to an ssh key. While a relative path will work, it is generally recommended
-# that one uses absolute paths to be clear as to which key is being requested.
-# Comments are not allowed in the config file, in any kind of syntax.
-# Any variables in the config file will be interpreted by the shell.
-#
-# Example:
-# In example config file <rsa>
-# ~/.ssh/id_rsa
-#
-# In example config file <"second key">
-# ${HOME}/.ssh/id_dsa
+# config file version
+config_version="2"
 
 # Location of the actual git binary
 _git="/usr/bin/git"
@@ -204,8 +185,23 @@ create_config_if_wanted()
   if [ "${handled_by_create}" -ne 0 ]; then
     if [ ! -z "${create_config_name}" ] && [ ! -z "${create_config_path}" ]; then
       check_config_dir_conditions || return 1
-      printf -- "${create_config_path}\n" > "${config_dir}/${create_config_name}"
       printf -- "Create new config: ${create_config_name}\n"
+
+      local config_file="${config_dir}/${create_config_name}.${config_version}"
+
+      # Create the file
+      touch "${config_file}"
+
+      # Clear the config
+      printf -- "" > "${config_file}"
+
+      # Capture all hosts by default
+      printf -- "Host *\n" >> "${config_file}"
+
+      # Set the requested identify file found at ${create_config_path}
+      printf -- "    IdentityFile ${create_config_path}\n" >> "${config_file}"
+
+      unset config_file
       echo
     else
       printf -- "ERROR: Cannot create new config.\n"
@@ -291,7 +287,7 @@ check_wrapper_conditions()
   check_ssh_key_conditions || return 2
 }
 
-read_config_file()
+locate_config_file()
 {
   # Path expanstion via shell
   log "Find configs in ${config_dir}"
@@ -302,9 +298,9 @@ read_config_file()
     if [ ! -d "${config}" ]; then
       # Read the config if it is the one we want
       local base="$(basename "${config}")"
-      log "Check for match at (config): ${base} and (key): ${ssh_key}"
-      if [ "${base}" = "${ssh_key}" ]; then
-        git_ssh_path=$(cat "${config}")
+      log "Check for match at (config): ${base} and (key): ${ssh_key}.${config_version}"
+      if [ "${base}" = "${ssh_key}.${config_version}" ]; then
+        git_ssh_path="${config}"
         log "Set git_ssh_path to: ${git_ssh_path}"
         break
       fi
@@ -506,7 +502,7 @@ fi
 check_wrapper_conditions || exit 2
 
 # Read the config file requested and check its valid
-read_config_file
+locate_config_file
 check_valid_ssh_path || exit 3
 
 # Run git using the ssh key that was found
@@ -522,9 +518,9 @@ check_valid_ssh_path || exit 3
 # Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
 # and single quotes to be passed through
 log "Call requests wrapper options, call wrapper git"
-log "GIT_SSH_COMMAND='ssh -i ${git_ssh_path} ${ssh_args}'"
+log "GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${ssh_args}'"
 log "GIT: ${_git}"
 log "ARGS: ${git_args}"
-eval "exec env GIT_SSH_COMMAND=\"ssh -i ${git_ssh_path} ${ssh_args}\" ${_git} ${git_args}"
+eval "exec env GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${ssh_args}' ${_git} ${git_args}"
 
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
