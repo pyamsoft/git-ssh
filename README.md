@@ -14,7 +14,8 @@ The script currently handles the following option(s):
 
   --ssh-args COMMA-SEPARATED-OPTIONS
 
-  A comma separated list of options to pass to the invocation of ssh.t
+  A comma separated list of options to pass to the invocation of ssh. It is  
+  recommended that this list of options be surrounded by double quotes.
 
   --config-dir DIR
 
@@ -39,29 +40,11 @@ The script currently handles the following option(s):
 
 ### Configuration
 
-A valid config file can take any name, with or without spaces, and can  
-have any extension, though normal convention is to have none. For any  
-config files with spaces in the name, they will need to be properly  
-escaped.  
-
-Examples:     rsa    "second key"   github.ssh.key  
-
-A valid config file consists of exactly one line of content: A path  
-to an ssh key. While a relative path will work, it is generally recommended  
-that one uses absolute paths to be clear as to which key is being requested.  
-Comments are not allowed in the config file, in any kind of syntax.  
-Any variables in the config file will be interpreted by the shell.  
-
-Examples:  
-In example config file \<rsa\>  
-```
-~/.ssh/id_rsa  
-```
-
-In example config file \<"second key"\>  
-```
-${HOME}/.ssh/id_dsa  
-```
+Configuration files are just plain ssh_config files that have, by default, a  
+couple of options preset. The config files apply by default to all hosts and  
+have a specific IdentityFile noted. The IdentitiesOnly option is on, meaning  
+that only the IdentityFile specified can be used. One can override these  
+settings via the --ssh-args command line option.
 
 CONFIG files are by default searched for in the
 ${config_dir} location, which defaults to
