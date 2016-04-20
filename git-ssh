@@ -202,7 +202,7 @@ create_config_if_wanted()
       printf -- "    IdentityFile ${create_config_path}\n" >> "${config_file}"
 
       # Only use identities specified in the config file
-      printf -- "    IdentitiesOnly 'yes'\n" >> "${config_file}"
+      printf -- "    IdentitiesOnly yes\n" >> "${config_file}"
 
       unset config_file
       echo
