@@ -218,7 +218,7 @@ remove_config_if_wanted()
     if [ ! -z "${remove_config_name}" ]; then
       check_config_dir_conditions || return 1
       check_for_binary rm
-      local target="${config_dir}/${remove_config_name}"
+      local target="${config_dir}/${remove_config_name}.${config_version}"
       if [ -e "${target}" ]; then
         rm -f "${target}"
         printf -- "Remove config: ${target}\n"
@@ -287,6 +287,48 @@ check_wrapper_conditions()
   check_ssh_key_conditions || return 2
 }
 
+autoupdate_old_config()
+{
+  local base="$(basename "$1" )"
+
+  # Upgrading from git-ssh config version 1
+  log "Old config file found at: ${base}"
+  log "Auto upgrade to new format"
+  log ""
+
+  # Run the methods using info
+  prepare_create_config_option
+  handle_create_config_name "${ssh_key}"
+  handle_create_config_path "$(cat "$1" )"
+
+  local config_auto_result=
+  config_auto_result=$(create_config_if_wanted)
+  if [ $? -ne 0 ]; then
+    log "Failed to auto generate config for version: ${config_version}"
+  else
+    log "Auto generate config for version: ${config_version}"
+    log "Remove old config"
+    rm "$1"
+  fi
+  unset config_auto_result
+
+  # KLUDGE Duplication of code
+  # We need this check in here too because our original loop does not
+  # account for the fact that a new config was just added
+  local new_config="$1.${config_version}"
+  base="$(basename "${new_config}" )"
+  log "Check for match at (new_config): ${base} and (key): ${ssh_key}.${config_version}"
+  if [ "${base}" = "${ssh_key}.${config_version}" ]; then
+    git_ssh_path="${new_config}"
+    log "Set git_ssh_path to: ${git_ssh_path}"
+    unset new_config
+    break
+  fi
+
+  unset base
+  unset new_config
+}
+
 locate_config_file()
 {
   # Path expanstion via shell
@@ -297,9 +339,11 @@ locate_config_file()
     log "Check that ${config} is a file, not folder"
     if [ ! -d "${config}" ]; then
       # Read the config if it is the one we want
-      local base="$(basename "${config}")"
+      local base="$(basename "${config}" )"
       log "Check for match at (config): ${base} and (key): ${ssh_key}.${config_version}"
-      if [ "${base}" = "${ssh_key}.${config_version}" ]; then
+      if [ "${base}" = "${ssh_key}" ]; then
+        autoupdate_old_config "${config}"
+      elif [ "${base}" = "${ssh_key}.${config_version}" ]; then
         git_ssh_path="${config}"
         log "Set git_ssh_path to: ${git_ssh_path}"
         break
