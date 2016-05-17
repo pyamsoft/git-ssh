@@ -24,7 +24,7 @@
 # valid either in the context of the script or the git binary itself
 
 # git-ssh
-version="0.5.0"
+version="0.5.1"
 
 # config file version
 config_version="2"
