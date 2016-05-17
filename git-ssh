@@ -392,10 +392,15 @@ prepare_remove_config_name()
   fi
 }
 
-list_wrapper_help()
+print_version()
 {
   printf -- "git-ssh [${version}]\n"
   echo
+}
+
+list_wrapper_help()
+{
+  print_version
   printf -- "options\n"
   echo
   printf -- "  --ssh CONFIG               The name identifier of a config file in the \${config_dir}.\n"
@@ -407,7 +412,9 @@ list_wrapper_help()
   printf -- "                             Does not stop operation following completion.\n"
   printf -- "  --list-configs             Lists the contents of the \${config_dir}.\n"
   printf -- "                             Stops operation following completion.\n"
+  printf -- "  --wrapper-version          Prints the current wrapper version\n"
   printf -- "  --wrapper-help             Prints only this help block\n"
+  printf -- "  --wrapper-debug            Enables debugging statements\n"
   printf -- "  --help                     Prints this help block followed by git --help\n"
   echo
 }
@@ -507,6 +514,11 @@ for option in "$@"; do
     "--help")
       list_wrapper_help
       exec "${_git}" --help
+      ;;
+    "--wrapper-version")
+      print_version
+      # The version call ends the script
+      exit 0
       ;;
     *)
       log "Sanitize raw git argument: \"$1\""
