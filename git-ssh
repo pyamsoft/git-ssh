@@ -23,6 +23,9 @@
 # sanitize input. Please make sure all input passed into the script is
 # valid either in the context of the script or the git binary itself
 
+# Export the LC as the default C so that we do not run into locale based quirks
+export LC_ALL=C
+
 # git-ssh
 version="0.5.1"
 
