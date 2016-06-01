@@ -516,7 +516,7 @@ for option in "$@"; do
       ;;
     "--help")
       list_wrapper_help
-      exec "${_git}" --help
+      eval "exec ${_git} ${git_args} --help"
       ;;
     "--wrapper-version")
       print_version
