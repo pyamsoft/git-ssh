@@ -523,6 +523,10 @@ for option in "$@"; do
       # The version call ends the script
       exit 0
       ;;
+    "--version")
+      print_version
+      eval "exec ${_git} ${git_args} --version"
+      ;;
     *)
       log "Sanitize raw git argument: \"$1\""
       if [ -z "${git_args}" ]; then
