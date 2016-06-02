@@ -27,7 +27,7 @@
 export LC_ALL=C
 
 # git-ssh
-version="0.5.2"
+version="0.6.0"
 
 # config file version
 config_version="2"
