@@ -41,7 +41,7 @@ config_dir="$XDG_CONFIG_HOME/git-ssh"
 
 # The ssh key requested
 ssh_key=""
-ssh_args=""
+__ssh_args=""
 
 # The ssh key git should use
 git_ssh_path=""
@@ -69,7 +69,6 @@ expect_config_dir=0
 expect_create_config_name=0
 expect_create_config_path=0
 expect_remove_config_name=0
-expect_ssh_args=0
 
 log()
 {
@@ -118,23 +117,6 @@ check_for_binary()
   return 1
 }
 
-
-# Sets the ssh_key
-handle_ssh_key_option()
-{
-  log "ssh_key set to '$1'"
-  expect_ssh_key=0
-  ssh_key="$1"
-}
-
-# Sets the config_dir
-handle_config_dir_option()
-{
-  log "config_dir set to '$1'"
-  expect_config_dir=0
-  config_dir="$1"
-}
-
 handle_create_config_name()
 {
   log "create_config_name set to '$1'"
@@ -157,19 +139,30 @@ handle_remove_config_name()
   remove_config_name="$1"
 }
 
+##
+# Handle the parsing of command line SSH arguments
+#
+# $1 ssh arguments, comma separated
 handle_ssh_args_option()
 {
-  expect_ssh_args=0
-  check_for_binary tr
-  local split_ssh_args="$(printf -- "$1" | tr "," "\n")"
+  ssh_args_comma_separated="$1"
+  split_ssh_args=
+
+  check_for_binary tr || return 1
+  split_ssh_args="$(printf -- "${ssh_args_comma_separated}" | tr "," "\n")"
   for arg in ${split_ssh_args}; do
-    if [ -z "${ssh_args}" ]; then
-      ssh_args="${arg}"
+    if [ -z "${__ssh_args}" ]; then
+      __ssh_args="${arg}"
     else
-      ssh_args="${ssh_args} ${arg}"
+      __ssh_args="${__ssh_args} ${arg}"
     fi
+    unset arg
   done
-  log "ssh_args set to '${ssh_args}'"
+  log "ssh_args set to '${__ssh_args}'"
+
+  unset ssh_args_comma_separated
+  unset split_ssh_args
+  return 0
 }
 
 prepare_ssh_key_option()
@@ -197,20 +190,6 @@ prepare_config_dir_option()
   if [ "${expect_config_dir}" -ne 1 ]; then
     log "Expect config_dir next"
     expect_config_dir=1
-  fi
-}
-
-prepare_ssh_args()
-{
-  # Handle this call to git with the wrapper
-  if [ "${handled_by_wrapper}" -ne 1 ]; then
-    log "This git call is handled by wrapper"
-    handled_by_wrapper=1
-  fi
-
-  if [ "${expect_ssh_args}" -ne 1 ]; then
-    log "Expect ssh_args next"
-    expect_ssh_args=1
   fi
 }
 
@@ -454,175 +433,192 @@ list_wrapper_help()
   echo
 }
 
-# Options to passthrough to git
-# KLUDGE not currently implemented
-#        See below in the switch statement
-#
-# git_options=""
+main()
+{
+  # Options to passthrough to git
+  # KLUDGE not currently implemented
+  #        See below in the switch statement
+  #
+  # git_options=""
 
-# We need git, cat, env, and ssh
-# In the case of git, we check that the path resolves
-if [ ! -e "${GIT_BINARY}" ]; then
-  printf -- "Git must be installed and located at: ${GIT_BINARY}"
-  exit 1
-fi
-
-check_for_binary cat
-check_for_binary ssh
-check_for_binary env
-
-# We have everything, let's go
-if [ -z "$1" ]; then
-  # Just run git
-  exec "${GIT_BINARY}" "$@"
-fi
-
-# Super hacky option parsing
-# Loop through the options passed in var $@
-# If the option is a valid case in the switch statement
-# it will set an expected_$$ flag
-#
-# If the flag is set, the next variable passed in is expected to be
-# a valid parameter for the given option.
-# The option call --${opt} and its argument ${arg} are shifted out of the
-# array $@ so that only the options passed to git are left
-for option in "$@"; do
-
-  # Check for any expected options
-  if [ "${expect_ssh_key}" -ne 0 ]; then
-    handle_ssh_key_option "${option}"
-    shift
-    continue
-  elif [ "${expect_config_dir}" -ne 0 ]; then
-    handle_config_dir_option "${option}"
-    shift
-    continue
-  elif [ "${expect_create_config_name}" -ne 0 ]; then
-    handle_create_config_name "${option}"
-    shift
-    continue
-  elif [ "${expect_create_config_path}" -ne 0 ]; then
-    handle_create_config_path "${option}"
-    shift
-    continue
-  elif [ "${expect_remove_config_name}" -ne 0 ]; then
-    handle_remove_config_name "${option}"
-    shift
-    continue
-  elif [ "${expect_ssh_args}" -ne 0 ]; then
-    handle_ssh_args_option "${option}"
-    shift
-    continue
+  # We need git, cat, env, and ssh
+  # In the case of git, we check that the path resolves
+  if [ ! -e "${GIT_BINARY}" ]; then
+    printf -- "Git must be installed and located at: ${GIT_BINARY}"
+    exit 1
   fi
 
-  case "${option}" in
-    "--ssh")
-      prepare_ssh_key_option
-      shift
-      ;;
-    "--config-dir")
-      prepare_config_dir_option
-      shift
-      ;;
-    "--create-config")
-      prepare_create_config_option
-      shift
-      ;;
-    "--remove-config")
-      prepare_remove_config_name
-      shift
-      ;;
-    "--ssh-args")
-      prepare_ssh_args
-      shift
-      ;;
-    "--list-configs")
-      should_list_configs=1
-      shift
-      ;;
-    "--wrapper-debug")
-      wrapper_debug=1
-      log "Turn on wrapper debugging"
-      shift
-      ;;
-    "--wrapper-help")
-      list_wrapper_help
-      # The help call ends the script
-      exit 0
-      ;;
-    "--help")
-      list_wrapper_help
-      eval "exec ${GIT_BINARY} ${git_args} --help"
-      ;;
-    "--wrapper-version")
-      print_version
-      # The version call ends the script
-      exit 0
-      ;;
-    "--version")
-      print_version
-      eval "exec ${GIT_BINARY} ${git_args} --version"
-      ;;
-    *)
-      log "Sanitize raw git argument: \"$1\""
-      if [ -z "${git_args}" ]; then
-        git_args="\"${1}\""
+  check_for_binary cat
+  check_for_binary ssh
+  check_for_binary env
+
+  # We have everything, let's go
+  if [ -z "$1" ]; then
+    # Just run git
+    exec "${GIT_BINARY}" "$@"
+  fi
+
+  if [ $# -gt 0 ]; then
+    long_option=""
+    optind_expanded=
+    eval optind_expanded="\$${OPTIND}"
+    while [ -n "${optind_expanded}" ]; do
+      while getopts ":-:" option; do
+        # Set only on long option with arg
+        if [ -n "${long_option}" ]; then
+          error_msg "Long option --${long_option} expects argument"
+          return 1
+        fi
+
+        long_option=""
+        case "${option}" in
+          -)
+            info_msg "parse long option: -${option}${OPTARG}"
+            case "${OPTARG}" in
+              list-configs)
+                handled_by_wrapper=1
+                should_list_configs=1
+                ;;
+              wrapper-debug)
+                handled_by_wrapper=1
+                wrapper_debug=1
+                log "Turn on wrapper debugging"
+                ;;
+              wrapper-help)
+                handled_by_wrapper=1
+                list_wrapper_help
+                # The help call ends the script
+                return 0
+                ;;
+              help)
+                handled_by_wrapper=1
+                list_wrapper_help
+                eval "exec ${GIT_BINARY} ${git_args} --help"
+                ;;
+              wrapper-version)
+                handled_by_wrapper=1
+                print_version
+                # The version call ends the script
+                return 0
+                ;;
+              version)
+                handled_by_wrapper=1
+                print_version
+                eval "exec ${GIT_BINARY} ${git_args} --version"
+                ;;
+              ssh|config-dir|remove-config|ssh-args)
+                handled_by_wrapper=1
+                long_option="${OPTARG}"
+                ;;
+              create-config)
+                handled_by_wrapper=1
+                # need two things here
+                ;;
+              *)
+                log "Sanitize raw git argument: \"$1\""
+                if [ -z "${git_args}" ]; then
+                  git_args="\"${1}\""
+                else
+                  git_args="${git_args} \"${1}\""
+                fi
+                # git_options="$1 ${git_options}"
+                shift
+
+                # KLUDGE Limiations
+                # Do nothing
+                ;;
+            esac
+            ;;
+        esac
+      done
+
+      # Re-establish the current OPTIND target
+      if [ $# -ge ${OPTIND} ]; then
+        eval optind_expanded="\$${OPTIND}"
       else
-        git_args="${git_args} \"${1}\""
+        optind_expanded=""
       fi
-      # git_options="$1 ${git_options}"
-      shift
 
-      # KLUDGE Limiations
-      # Do nothing
-      ;;
-  esac
-done
+      if [ -z "${optind_expanded}" ]; then
+        if [ -n "${long_option}" ]; then
+          error_msg "Long option --${long_option} expects argument"
+          return 1
+        else
+          break
+        fi
+      else
+        # This is a plain arg and should be handled by one of the options which takes an argument
+        case "${long_option}" in
+          ssh)
+            ssh_key="${optind_expanded}"
+            ;;
+          config-dir)
+            config_dir="${optind_expanded}"
+            ;;
+          remove_config)
+            # remove
+            ;;
+          ssh-args)
+            # parse args
+            ;;
+        esac
 
-# Remove the config if requested
-remove_config_if_wanted || exit 1
+        # Set back to null
+        long_option=""
+      fi
 
-# Create the config if requested
-create_config_if_wanted || exit 1
+      # Shift the options
+      shift $OPTIND
+      OPTIND=1
+    done
+  fi
 
-if [ "${should_list_configs}" -ne 0 ]; then
-  list_configs || exit 1
-  exit 1
-fi
+  # Remove the config if requested
+  remove_config_if_wanted || exit 1
+
+  # Create the config if requested
+  create_config_if_wanted || exit 1
+
+  if [ "${should_list_configs}" -ne 0 ]; then
+    list_configs || exit 1
+    exit 1
+  fi
 
 
-# Wrapper does not play a part
-if [ "${handled_by_wrapper}" -eq 0 ]; then
-  # Just run git
+  # Wrapper does not play a part
+  if [ "${handled_by_wrapper}" -eq 0 ]; then
+    # Just run git
+    # We use eval to convert the raw strings into arguments for git
+    # This is not the safest solution but currently appears to work
+    log "Call does not request wrapper options, call git normally"
+    eval "exec ${GIT_BINARY} ${git_args}"
+  fi
+
+  # Make sure everything is set
+  check_wrapper_conditions || exit 2
+
+  # Read the config file requested and check its valid
+  locate_config_file
+  check_valid_ssh_path || exit 3
+
+  # Run git using the ssh key that was found
+  # Git will handle any errors related to a bad path
+  # to an SSH key, just as if you had entered this env var yourself
+
   # We use eval to convert the raw strings into arguments for git
   # This is not the safest solution but currently appears to work
-  log "Call does not request wrapper options, call git normally"
-  eval "exec ${GIT_BINARY} ${git_args}"
-fi
+  #
+  # Escape the double quotes so that the shell does not attempt to parse the
+  # options given to GIT_SSH_COMMAND
+  #
+  # Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
+  # and single quotes to be passed through
+  log "Call requests wrapper options, call wrapper git"
+  log "GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${__ssh_args}'"
+  log "GIT: ${GIT_BINARY}"
+  log "ARGS: ${git_args}"
+  eval "exec env GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${__ssh_args}' ${GIT_BINARY} ${git_args}"
+}
 
-# Make sure everything is set
-check_wrapper_conditions || exit 2
-
-# Read the config file requested and check its valid
-locate_config_file
-check_valid_ssh_path || exit 3
-
-# Run git using the ssh key that was found
-# Git will handle any errors related to a bad path
-# to an SSH key, just as if you had entered this env var yourself
-
-# We use eval to convert the raw strings into arguments for git
-# This is not the safest solution but currently appears to work
-#
-# Escape the double quotes so that the shell does not attempt to parse the
-# options given to GIT_SSH_COMMAND
-#
-# Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
-# and single quotes to be passed through
-log "Call requests wrapper options, call wrapper git"
-log "GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${ssh_args}'"
-log "GIT: ${GIT_BINARY}"
-log "ARGS: ${git_args}"
-eval "exec env GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${ssh_args}' ${GIT_BINARY} ${git_args}"
-
+main "$@"
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
