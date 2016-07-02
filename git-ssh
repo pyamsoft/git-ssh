@@ -78,15 +78,46 @@ log()
   fi
 }
 
-# Check the environment path for the given binary, exit if it is not found
+##
+# Check the environment path for the given binary, return if it is not found
+#
+# $1 the binary to check on the PATH
+##
 check_for_binary()
 {
-  if ! which "$1" > /dev/null 2>&1; then
-    printf -- "The '%s' binary is required for this script.\n" "$1"
-    printf -- "Please install '%s' onto your system.\n" "$1"
-    exit 1
+  check_for_binary__bin="$1"
+  check_for_binary__old_ifs="${IFS}"
+  if [ -z "${check_for_binary__bin}" ]; then
+    printf -- "Must specify a path to a binary"
+    return 1
   fi
+
+  IFS=":"
+  for check_for_binary__path in ${PATH}; do
+    check_for_binary__result=
+    check_for_binary__result="${check_for_binary__path}/${check_for_binary__bin}"
+    if [ -e "${check_for_binary__result}" ]; then
+      IFS="${check_for_binary__old_ifs}"
+
+      unset check_for_binary__result
+      unset check_for_binary__bin
+      unset check_for_binary__old_ifs
+      unset check_for_binary__path
+      return 0
+    fi
+
+    unset check_for_binary__result
+  done
+
+  printf -- "Binary '${check_for_binary__bin}' not found in \$PATH"
+
+  unset check_for_binary__result
+  unset check_for_binary__bin
+  unset check_for_binary__old_ifs
+  unset check_for_binary__path
+  return 1
 }
+
 
 # Sets the ssh_key
 handle_ssh_key_option()
@@ -431,7 +462,11 @@ list_wrapper_help()
 
 # We need git, cat, env, and ssh
 # In the case of git, we check that the path resolves
-check_for_binary "${GIT_BINARY}"
+if [ ! -e "${GIT_BINARY}" ]; then
+  printf -- "Git must be installed and located at: ${GIT_BINARY}"
+  exit 1
+fi
+
 check_for_binary cat
 check_for_binary ssh
 check_for_binary env
