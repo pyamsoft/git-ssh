@@ -33,7 +33,7 @@ readonly VERSION="0.6.0"
 readonly CONFIG_VERSION="2"
 
 # Location of the actual git binary
-_git="/usr/bin/git"
+readonly GIT_BINARY="/usr/bin/git"
 git_args=""
 
 # Location of the dir with configs stored
@@ -431,7 +431,7 @@ list_wrapper_help()
 
 # We need git, cat, env, and ssh
 # In the case of git, we check that the path resolves
-check_for_binary "${_git}"
+check_for_binary "${GIT_BINARY}"
 check_for_binary cat
 check_for_binary ssh
 check_for_binary env
@@ -439,7 +439,7 @@ check_for_binary env
 # We have everything, let's go
 if [ -z "$1" ]; then
   # Just run git
-  exec "${_git}" "$@"
+  exec "${GIT_BINARY}" "$@"
 fi
 
 # Super hacky option parsing
@@ -517,7 +517,7 @@ for option in "$@"; do
       ;;
     "--help")
       list_wrapper_help
-      eval "exec ${_git} ${git_args} --help"
+      eval "exec ${GIT_BINARY} ${git_args} --help"
       ;;
     "--wrapper-version")
       print_version
@@ -526,7 +526,7 @@ for option in "$@"; do
       ;;
     "--version")
       print_version
-      eval "exec ${_git} ${git_args} --version"
+      eval "exec ${GIT_BINARY} ${git_args} --version"
       ;;
     *)
       log "Sanitize raw git argument: \"$1\""
@@ -562,7 +562,7 @@ if [ "${handled_by_wrapper}" -eq 0 ]; then
   # We use eval to convert the raw strings into arguments for git
   # This is not the safest solution but currently appears to work
   log "Call does not request wrapper options, call git normally"
-  eval "exec ${_git} ${git_args}"
+  eval "exec ${GIT_BINARY} ${git_args}"
 fi
 
 # Make sure everything is set
@@ -586,8 +586,8 @@ check_valid_ssh_path || exit 3
 # and single quotes to be passed through
 log "Call requests wrapper options, call wrapper git"
 log "GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${ssh_args}'"
-log "GIT: ${_git}"
+log "GIT: ${GIT_BINARY}"
 log "ARGS: ${git_args}"
-eval "exec env GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${ssh_args}' ${_git} ${git_args}"
+eval "exec env GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${ssh_args}' ${GIT_BINARY} ${git_args}"
 
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
