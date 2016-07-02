@@ -23,11 +23,6 @@
 # sanitize input. Please make sure all input passed into the script is
 # valid either in the context of the script or the git binary itself
 
-if [ "$(basename "$_")" != "git-ssh" ] && [ "$(basename "$_" )" != "git" ]; then
-  # Return, script is sourced
-  return 0
-fi
-
 # Export the LC as the default C so that we do not run into locale based quirks
 export LC_ALL=C
 
