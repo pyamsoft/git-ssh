@@ -32,10 +32,10 @@ fi
 export LC_ALL=C
 
 # git-ssh
-version="0.6.0"
+readonly VERSION="0.6.0"
 
 # config file version
-config_version="2"
+readonly CONFIG_VERSION="2"
 
 # Location of the actual git binary
 _git="/usr/bin/git"
@@ -195,7 +195,7 @@ create_config_if_wanted()
       check_config_dir_conditions || return 1
       printf -- "Create new config: ${create_config_name}\n"
 
-      local config_file="${config_dir}/${create_config_name}.${config_version}"
+      local config_file="${config_dir}/${create_config_name}.${CONFIG_VERSION}"
 
       # Create the file
       touch "${config_file}"
@@ -229,7 +229,7 @@ remove_config_if_wanted()
     if [ ! -z "${remove_config_name}" ]; then
       check_config_dir_conditions || return 1
       check_for_binary rm
-      local target="${config_dir}/${remove_config_name}.${config_version}"
+      local target="${config_dir}/${remove_config_name}.${CONFIG_VERSION}"
       if [ -e "${target}" ]; then
         rm -f "${target}"
         printf -- "Remove config: ${target}\n"
@@ -315,9 +315,9 @@ autoupdate_old_config()
   local config_auto_result=
   config_auto_result=$(create_config_if_wanted)
   if [ $? -ne 0 ]; then
-    log "Failed to auto generate config for version: ${config_version}"
+    log "Failed to auto generate config for version: ${CONFIG_VERSION}"
   else
-    log "Auto generate config for version: ${config_version}"
+    log "Auto generate config for version: ${CONFIG_VERSION}"
     log "Remove old config"
     rm "$1"
   fi
@@ -326,10 +326,10 @@ autoupdate_old_config()
   # KLUDGE Duplication of code
   # We need this check in here too because our original loop does not
   # account for the fact that a new config was just added
-  local new_config="$1.${config_version}"
+  local new_config="$1.${CONFIG_VERSION}"
   base="$(basename "${new_config}" )"
-  log "Check for match at (new_config): ${base} and (key): ${ssh_key}.${config_version}"
-  if [ "${base}" = "${ssh_key}.${config_version}" ]; then
+  log "Check for match at (new_config): ${base} and (key): ${ssh_key}.${CONFIG_VERSION}"
+  if [ "${base}" = "${ssh_key}.${CONFIG_VERSION}" ]; then
     git_ssh_path="${new_config}"
     log "Set git_ssh_path to: ${git_ssh_path}"
     unset new_config
@@ -351,10 +351,10 @@ locate_config_file()
     if [ ! -d "${config}" ]; then
       # Read the config if it is the one we want
       local base="$(basename "${config}" )"
-      log "Check for match at (config): ${base} and (key): ${ssh_key}.${config_version}"
+      log "Check for match at (config): ${base} and (key): ${ssh_key}.${CONFIG_VERSION}"
       if [ "${base}" = "${ssh_key}" ]; then
         autoupdate_old_config "${config}"
-      elif [ "${base}" = "${ssh_key}.${config_version}" ]; then
+      elif [ "${base}" = "${ssh_key}.${CONFIG_VERSION}" ]; then
         git_ssh_path="${config}"
         log "Set git_ssh_path to: ${git_ssh_path}"
         break
@@ -402,7 +402,7 @@ prepare_remove_config_name()
 
 print_version()
 {
-  printf -- "git-ssh [${version}]\n"
+  printf -- "git-ssh [${VERSION}]\n"
   echo
 }
 
