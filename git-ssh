@@ -64,8 +64,6 @@ handled_by_remove=0
 
 # These are set when the next passed in argument is expected
 # to be a valid parameter
-expect_ssh_key=0
-expect_config_dir=0
 expect_create_config_name=0
 expect_create_config_path=0
 expect_remove_config_name=0
@@ -125,20 +123,6 @@ handle_create_config_name()
   create_config_name="$1"
 }
 
-handle_create_config_path()
-{
-  log "create_config_path set to '$1'"
-  expect_create_config_path=0
-  create_config_path="$1"
-}
-
-handle_remove_config_name()
-{
-  log "remove_config_name set to '$1'"
-  expect_remove_config_name=0
-  remove_config_name="$1"
-}
-
 ##
 # Handle the parsing of command line SSH arguments
 #
@@ -163,34 +147,6 @@ handle_ssh_args_option()
   unset ssh_args_comma_separated
   unset split_ssh_args
   return 0
-}
-
-prepare_ssh_key_option()
-{
-  # Handle this call to git with the wrapper
-  if [ "${handled_by_wrapper}" -ne 1 ]; then
-    log "This git call is handled by wrapper"
-    handled_by_wrapper=1
-  fi
-
-  if [ "${expect_ssh_key}" -ne 1 ]; then
-    log "Expect ssh_key next"
-    expect_ssh_key=1
-  fi
-}
-
-prepare_config_dir_option()
-{
-  # Handle this call to git with the wrapper
-  if [ "${handled_by_wrapper}" -ne 1 ]; then
-    log "This git call is handled by wrapper"
-    handled_by_wrapper=1
-  fi
-
-  if [ "${expect_config_dir}" -ne 1 ]; then
-    log "Expect config_dir next"
-    expect_config_dir=1
-  fi
 }
 
 create_config_if_wanted()
@@ -251,22 +207,33 @@ remove_config_if_wanted()
   fi
 }
 
+##
+# List all existing git-ssh configurations
+#
+# $1 configuration directory
 list_configs()
 {
+  list_configs__config_dir="$1"
   check_config_dir_conditions || return 1
-  check_for_binary ls
-  check_for_binary wc
-  check_for_binary head
-  local count=$(ls -1 "${config_dir}" | wc -l)
-  printf -- "Config directory: ${config_dir}\n"
-  printf -- "Number of configs: ${count}\n"
+  check_for_binary ls || return 1
+  check_for_binary wc || return 1
+  check_for_binary head || return 1
+
+  list_configs__count=
+  list_configs__count=$(ls -1 "${list_configs__config_dir}" | wc -l)
+  printf -- "Config directory: ${list_configs__config_dir}\n"
+  printf -- "Number of configs: ${list_configs__count}\n"
+
   echo
-  for config in "${config_dir}"/*; do
-    printf -- "[$(basename "${config}")]\n"
-    printf -- "Path: $(cat "${config}" )\n"
+  for list_configs__file in "${list_configs__config_dir}"/*; do
+    printf -- "[$(basename "${list_configs__file}")]\n"
+    printf -- "Path: $(cat "${list_configs__file}" )\n"
     echo
   done
-  unset count
+
+  unset list_configs__config_dir
+  unset list_configs__count
+  return 0
 }
 
 check_config_dir_conditions()
@@ -556,10 +523,10 @@ main()
             config_dir="${optind_expanded}"
             ;;
           remove_config)
-            # remove
+            remove_config_name="${optind_expanded}"
             ;;
           ssh-args)
-            # parse args
+            handle_ssh_args_option "${optind_expanded}" || return 1
             ;;
         esac
 
@@ -580,7 +547,7 @@ main()
   create_config_if_wanted || exit 1
 
   if [ "${should_list_configs}" -ne 0 ]; then
-    list_configs || exit 1
+    list_configs "${config_dir}" || exit 1
     exit 1
   fi
 
