@@ -556,17 +556,14 @@ main()
                 ;;
               wrapper-debug)
                 long_option_has_arg=0
-                handled_by_wrapper=0
                 __wrapper_debug=1
                 log "Turn on wrapper debugging"
                 ;;
               version|wrapper-version)
                 long_option_has_arg=0
-                handled_by_wrapper=1
                 long_option="${OPTARG}"
                 ;;
               help|wrapper-help)
-                handled_by_wrapper=1
                 long_option="${OPTARG}"
                 long_option_has_arg=0
                 ;;
@@ -607,37 +604,14 @@ main()
       fi
 
       log "Continuing: ${long_option} | ${optind_expanded}"
-      if [ -z "${optind_expanded}" ]; then
-        if [ -n "${long_option}" ] && [ "${long_option_has_arg}" -eq 1 ]; then
-          printf -- "Long option --${long_option} expects argument\n"
-          return 1
-        fi
-      else
-        if [ -z "${long_option}" ]; then
-          log "No long option, pass arg to Git."
-          log "Sanitize raw git argument: \"${optind_expanded}\""
-          if [ -z "${git_args}" ]; then
-            git_args="\"${optind_expanded}\""
-          else
-            git_args="${git_args} \"${optind_expanded}\""
+      if [ -n "${long_option}" ]; then
+        # Call should be processed by wrapper
+        if [ "${long_option_has_arg}" -eq 1 ]; then
+          if [ -z "${optind_expanded}" ]; then
+            printf -- "Long option --${long_option} expects argument\n"
+            return 1
           fi
-        elif [ "${long_option_has_arg}" -eq 0 ]; then
-          # This is a plain arg and should be handled by one of the options which takes an argument
-          log "Has option no argument: ${long_option}"
-          case "${long_option}" in
-            wrapper-help)
-              list_wrapper_help || return 1
-              return 0
-              ;;
-            help)
-              list_wrapper_help || return 1
-              eval "exec ${GIT_BINARY} ${git_args} --help"
-              ;;
-            wrapper-debug)
-              log "Turn on wrapper debugging"
-              ;;
-          esac
-        else
+
           # This is a plain arg and should be handled by one of the options which takes an argument
           log "Has option with argument: ${long_option} ${optind_expanded}"
           case "${long_option}" in
@@ -657,6 +631,43 @@ main()
               handle_create_config "${optind_expanded}" || return 1
               ;;
           esac
+        else
+          # This is a plain arg and should be handled by one of the options which takes an argument
+          log "Has option no argument: ${long_option}"
+          case "${long_option}" in
+            wrapper-help)
+              list_wrapper_help || return 1
+              return 0
+              ;;
+            help)
+              list_wrapper_help || return 1
+              eval "exec ${GIT_BINARY} ${git_args} --help"
+              ;;
+            wrapper-version)
+              print_version || return 1
+              return 0
+              ;;
+            version)
+              print_version || return 1
+              eval "exec ${GIT_BINARY} ${git_args} --version"
+              ;;
+            wrapper-debug)
+              log "Turn on wrapper debugging"
+              ;;
+          esac
+        fi
+      else
+        if [ -n "${optind_expanded}" ]; then
+          # Just pass argument to git
+          log "No long option, pass arg to Git."
+          log "Sanitize raw git argument: \"${optind_expanded}\""
+          if [ -z "${git_args}" ]; then
+            git_args="\"${optind_expanded}\""
+          else
+            git_args="${git_args} \"${optind_expanded}\""
+          fi
+        else
+          log "No argument passed"
         fi
       fi
 
