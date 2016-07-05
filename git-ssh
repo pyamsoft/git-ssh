@@ -582,6 +582,16 @@ main()
                 handled_by_wrapper=1
                 long_option="${OPTARG}"
                 ;;
+              *)
+                log "Long option that is not handled by script passed."
+                log "Git option, pass arg to Git."
+                log "Sanitize raw git argument: \"--${OPTARG}\""
+                if [ -z "${git_args}" ]; then
+                  git_args="\"--${OPTARG}\""
+                else
+                  git_args="${git_args} \"--${OPTARG}\""
+                fi
+                ;;
             esac
             ;;
           *)
