@@ -342,27 +342,38 @@ check_config_dir_conditions()
   return 0
 }
 
+##
+# Check that the ssh_key is defined
+#
+# $1 ssh_key variable
 check_ssh_key_conditions()
 {
-  # No ssh key was requested
+  check_ssh_key_conditions__ssh="$2"
+
   log "Check that an ssh_key was requested..."
-  if [ -z "${ssh_key}" ]; then
+  if [ -z "${check_ssh_key_conditions__ssh}" ]; then
+    # No ssh key was requested
     printf -- "ERROR: No ssh_key was requested\n"
     return 1
   fi
+
+  unset check_ssh_key_conditions__ssh
+  return 0
 }
 
 ##
 # Check that the wrapper can continue
 #
 # $1 configuration directory
+# $2 ssh_key variable
 check_wrapper_conditions()
 {
   check_wrapper_conditions__config="$1"
+  check_wrapper_conditions__ssh="$2"
 
   log "Check that wrapper can continue..."
   check_config_dir_conditions "${check_wrapper_conditions__config}"|| return 1
-  check_ssh_key_conditions || return 1
+  check_ssh_key_conditions "${check_wrapper_conditions__ssh}" || return 1
 
   unset check_wrapper_conditions__config
   return 0
@@ -403,6 +414,7 @@ autoupdate_old_config()
   else
     log "Auto generate config for version: ${CONFIG_VERSION}"
     log "Remove old config"
+    check_for_binary rm || return 1
     rm -f "$1"
   fi
 
@@ -717,7 +729,7 @@ main()
   fi
 
   # Make sure everything is set
-  check_wrapper_conditions "${config_dir}" || return 1
+  check_wrapper_conditions "${config_dir}" "${ssh_key}" || return 1
 
   # Read the config file requested and check its valid
   locate_config_file "${config_dir}" "${ssh_key}" || return 1
