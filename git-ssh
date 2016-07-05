@@ -35,15 +35,11 @@ readonly CONFIG_VERSION="2"
 # Location of the actual git binary
 readonly GIT_BINARY="/usr/bin/git"
 
-# The ssh key requested
-ssh_key=""
-__ssh_args=""
-
 # The ssh key git should use
 __git_ssh_path=""
 
 # No argument options
-wrapper_debug=0
+__wrapper_debug=0
 
 # Parameters for creating a config
 __create_config_name=""
@@ -54,7 +50,7 @@ __remove_config_name=""
 
 log()
 {
-  if [ "${wrapper_debug}" -ne 0 ]; then
+  if [ "${__wrapper_debug}" -ne 0 ]; then
     printf -- "%s\n" "$1"
   fi
 }
@@ -103,22 +99,28 @@ check_for_binary()
 # Handle the parsing of command line SSH arguments
 #
 # $1 ssh arguments, comma separated
+#
+# Outputs SSH arguments in correct format
 handle_ssh_args_option()
 {
   ssh_args_comma_separated="$1"
+  ssh_args_correct=""
   split_ssh_args=
 
   check_for_binary tr || return 1
   split_ssh_args="$(printf -- "${ssh_args_comma_separated}" | tr "," "\n")"
   for arg in ${split_ssh_args}; do
-    if [ -z "${__ssh_args}" ]; then
-      __ssh_args="${arg}"
+    if [ -z "${ssh_args_correct}" ]; then
+      ssh_args_correct="${arg}"
     else
-      __ssh_args="${__ssh_args} ${arg}"
+      ssh_args_correct="${ssh_args_correct} ${arg}"
     fi
     unset arg
   done
-  log "ssh_args set to '${__ssh_args}'"
+
+  # Echo output
+  log "ssh_args set to '${ssh_args_correct}'"
+  printf -- "${ssh_args_correct}"
 
   unset ssh_args_comma_separated
   unset split_ssh_args
@@ -157,7 +159,9 @@ handle_create_config()
     return 1
   fi
 
+  # Echo output
   log "Config name: ${__create_config_name}, target: ${__create_config_target}"
+  printf -- "${__create_config_name}\n${__create_config_target}"
 
   unset handle_create_config__i
   unset handle_create_config__args
@@ -326,7 +330,7 @@ check_config_dir_conditions()
     printf -- "ERROR: config_dir does not exist at:  ${check_config_dir_conditions__dir}\n"
 
     unset check_config_dir_conditions__dir
-    return 2
+    return 1
   fi
 
   unset check_config_dir_conditions__dir
@@ -379,7 +383,7 @@ autoupdate_old_config()
   autoupdate_old_config__old="$(head -n 1 < "${autoupdate_old_config__config}" )"
   autoupdate_old_config__mashup="${autoupdate_old_config__base_config}:${autoupdate_old_config__old}"
   log "Run artificial call: handle_create_config ${autoupdate_old_config__mashup}"
-  handle_create_config "${autoupdate_old_config__mashup}"
+  handle_create_config "${autoupdate_old_config__mashup}" || return 1
 
   create_config_if_wanted "${autoupdate_old_config__dir}"
   if [ $? -ne 0 ]; then
@@ -430,7 +434,7 @@ locate_config_file()
       locate_config_file__base_config="$(basename "${locate_config_file__config}")"
       log "Check for match at (config): ${locate_config_file__base_config} and (key): ${locate_config_file__ssh}.${CONFIG_VERSION}"
       if [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}" ]; then
-        autoupdate_old_config "${locate_config_file__dir}" "${locate_config_file__config}"
+        autoupdate_old_config "${locate_config_file__dir}" "${locate_config_file__config}" || return 1
       elif [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
         __git_ssh_path="${locate_config_file__config}"
         log "Set __git_ssh_path to: ${__git_ssh_path}"
@@ -447,14 +451,23 @@ locate_config_file()
   return 0
 }
 
+##
+# Check that the ssh_path exists
+#
+# $1 ssh_key name
 check_valid_ssh_path()
 {
+  check_valid_ssh_path__name="$1"
+
   # If no matching key was found
   log "Check for __git_ssh_path: ${__git_ssh_path}"
   if [ -z "${__git_ssh_path}" ]; then
-    printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
+    printf -- "ERROR: No key found which matches the requested key: ${check_valid_ssh_path__name}\n"
     return 1
   fi
+
+  unset check_valid_ssh_path__name
+  return 0
 }
 
 print_version()
@@ -492,7 +505,10 @@ main()
   handled_by_create=0
   handled_by_remove=0
   should_list_configs=0
+
   git_args=""
+  ssh_key=""
+  ssh_args=""
 
   # Location of the dir with configs stored
   config_dir="$XDG_CONFIG_HOME/git-ssh"
@@ -501,7 +517,7 @@ main()
   # In the case of git, we check that the path resolves
   if [ ! -e "${GIT_BINARY}" ]; then
     printf -- "Git must be installed and located at: ${GIT_BINARY}"
-    exit 1
+    return 1
   fi
 
   check_for_binary cat
@@ -542,7 +558,7 @@ main()
               wrapper-debug)
                 long_option_has_arg=0
                 handled_by_wrapper=0
-                wrapper_debug=1
+                __wrapper_debug=1
                 log "Turn on wrapper debugging"
                 ;;
               version|wrapper-version)
@@ -602,11 +618,11 @@ main()
           log "Has option no argument: ${long_option}"
           case "${long_option}" in
             wrapper-help)
-              list_wrapper_help
+              list_wrapper_help || return 1
               return 0
               ;;
             help)
-              list_wrapper_help
+              list_wrapper_help || return 1
               # shellcheck disable=SC2086
               exec "${GIT_BINARY}" ${git_args} --help
               ;;
@@ -628,7 +644,7 @@ main()
               handle_remove_config "${optind_expanded}" || return 1
               ;;
             ssh-args)
-              handle_ssh_args_option "${optind_expanded}" || return 1
+              ssh_args="$(handle_ssh_args_option "${optind_expanded}")" || return 1
               ;;
             create-config)
               handle_create_config "${optind_expanded}" || return 1
@@ -648,21 +664,19 @@ main()
   fi
 
   # Remove the config if requested
-  remove_config_if_wanted "${handled_by_remove}" "${config_dir}" || exit 1
+  remove_config_if_wanted "${handled_by_remove}" "${config_dir}" || return 1
 
   # Create the config if requested
-  create_config_if_wanted "${handled_by_create}" "${config_dir}" || exit 1
+  create_config_if_wanted "${handled_by_create}" "${config_dir}" || return 1
 
   if [ "${should_list_configs}" -ne 0 ]; then
-    list_configs "${config_dir}" || exit 1
-    exit 1
+    list_configs "${config_dir}" || return 1
+    return 1
   fi
 
   # Wrapper does not play a part
   if [ "${handled_by_wrapper}" -eq 0 ]; then
     # Just run git
-    # We use eval to convert the raw strings into arguments for git
-    # This is not the safest solution but currently appears to work
     log "Call does not request wrapper options, call git normally"
     log "Do: \"${GIT_BINARY}\" ${git_args}"
     # shellcheck disable=SC2086
@@ -670,30 +684,30 @@ main()
   fi
 
   # Make sure everything is set
-  check_wrapper_conditions "${config_dir}" || exit 2
+  check_wrapper_conditions "${config_dir}" || return 1
 
   # Read the config file requested and check its valid
-  locate_config_file "${config_dir}" "${ssh_key}"
-  check_valid_ssh_path || exit 3
+  locate_config_file "${config_dir}" "${ssh_key}" || return 1
+  check_valid_ssh_path "${ssh_key}"|| return 1
 
   # Run git using the ssh key that was found
   # Git will handle any errors related to a bad path
   # to an SSH key, just as if you had entered this env var yourself
 
-  # We use eval to convert the raw strings into arguments for git
-  # This is not the safest solution but currently appears to work
-  #
   # Escape the double quotes so that the shell does not attempt to parse the
   # options given to GIT_SSH_COMMAND
   #
   # Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
   # and single quotes to be passed through
   log "Call requests wrapper options, call wrapper git"
-  log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${__ssh_args}'"
+  log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${ssh_args}'"
   log "GIT: ${GIT_BINARY}"
   log "ARGS: ${git_args}"
-  eval "exec env GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${__ssh_args}' ${GIT_BINARY} ${git_args}"
+  export GIT_SSH_COMMAND="ssh -F \"${__git_ssh_path}\" ${ssh_args}"
+
+  # shellcheck disable=SC2086
+  exec "${GIT_BINARY}" ${git_args}
 }
 
-main "$@"
+main "$@" || exit 1
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
