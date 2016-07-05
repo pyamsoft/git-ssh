@@ -19,12 +19,14 @@
 # git-ssh
 # An ssh-key selection wrapper for git
 
+# Prevent the script from being sourced
+if [ "$(basename "$_")" != "git-ssh" ] && [ "$(basename "$_")" != "git" ]; then
+  # Return, script was sourced
+  return 0
+fi
+
 # Fail if pipe fails
 set -o pipefail
-
-# NOTE: This script does not check that the SSH key is valid, and does not
-# sanitize input. Please make sure all input passed into the script is
-# valid either in the context of the script or the git binary itself
 
 # Export the LC as the default C so that we do not run into locale based quirks
 export LC_ALL=C
@@ -591,6 +593,15 @@ main()
                 ;;
             esac
             ;;
+          *)
+            log "Git option, pass arg to Git."
+            log "Sanitize raw git argument: \"-${option}\""
+            if [ -z "${git_args}" ]; then
+              git_args="\"-${option}\""
+            else
+              git_args="${git_args} \"-${option}\""
+            fi
+            ;;
         esac
       done
 
@@ -612,9 +623,9 @@ main()
           log "No long option, pass arg to Git."
           log "Sanitize raw git argument: \"${optind_expanded}\""
           if [ -z "${git_args}" ]; then
-            git_args="${optind_expanded}"
+            git_args="\"${optind_expanded}\""
           else
-            git_args="${git_args} ${optind_expanded}"
+            git_args="${git_args} \"${optind_expanded}\""
           fi
         elif [ "${long_option_has_arg}" -eq 0 ]; then
           # This is a plain arg and should be handled by one of the options which takes an argument
@@ -626,8 +637,7 @@ main()
               ;;
             help)
               list_wrapper_help || return 1
-              # shellcheck disable=SC2086
-              exec "${GIT_BINARY}" ${git_args} --help
+              eval "exec ${GIT_BINARY} ${git_args} --help"
               ;;
             wrapper-debug)
               log "Turn on wrapper debugging"
@@ -682,8 +692,7 @@ main()
     # Just run git
     log "Call does not request wrapper options, call git normally"
     log "Do: \"${GIT_BINARY}\" ${git_args}"
-    # shellcheck disable=SC2086
-    exec "${GIT_BINARY}" ${git_args}
+    eval "exec ${GIT_BINARY} ${git_args}"
   fi
 
   # Make sure everything is set
@@ -708,8 +717,7 @@ main()
   log "ARGS: ${git_args}"
   export GIT_SSH_COMMAND="ssh -F \"${__git_ssh_path}\" ${ssh_args}"
 
-  # shellcheck disable=SC2086
-  exec "${GIT_BINARY}" ${git_args}
+  eval "exec ${GIT_BINARY} ${git_args}"
 }
 
 main "$@" || exit 1
