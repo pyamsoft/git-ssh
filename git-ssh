@@ -19,6 +19,12 @@
 # git-ssh
 # An ssh-key selection wrapper for git
 
+# Prevent the script from being sourced
+if [ "$(basename "$_")" != "git-ssh" ] && [ "$(basename "$_")" != "git" ]; then
+  # Return, script was sourced
+  return 0
+fi
+
 # Fail if pipe fails
 set -o pipefail
 
