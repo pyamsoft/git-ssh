@@ -34,10 +34,6 @@ readonly CONFIG_VERSION="2"
 
 # Location of the actual git binary
 readonly GIT_BINARY="/usr/bin/git"
-git_args=""
-
-# Location of the dir with configs stored
-config_dir="$XDG_CONFIG_HOME/git-ssh"
 
 # The ssh key requested
 ssh_key=""
@@ -54,12 +50,7 @@ __create_config_name=""
 __create_config_target=""
 
 # Parameters for removing a config
-remove_config_name=""
-
-# Is this call to git going to be handled by the wrapper
-handled_by_wrapper=0
-handled_by_create=0
-handled_by_remove=0
+__remove_config_name=""
 
 log()
 {
@@ -134,6 +125,10 @@ handle_ssh_args_option()
   return 0
 }
 
+##
+# Prepares to create a config file given a format string
+#
+# $1 the format string [name]:[path]
 handle_create_config()
 {
   handle_create_config__args="$1"
@@ -170,24 +165,55 @@ handle_create_config()
   return 0
 }
 
+##
+# Handle preparation for the removing of a config file
+#
+# $1 config directory
+# $2 config target
+handle_remove_config()
+{
+  handle_remove_config__dir="$1"
+  handle_remove_config__file="$2"
+
+  if [ ! -f "${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}" ]; then
+    printf -- "Config does not exist, cannot remove."
+
+    unset handle_remove_config__dir
+    unset handle_remove_config__file
+    return 1
+  else
+    log "Config file exists, set it"
+    __remove_config_name="${handle_remove_config__file}"
+  fi
+
+  unset handle_remove_config__dir
+  unset handle_remove_config__file
+  return 0
+}
+
+##
+# Process the creating of a config file
+#
+# $1 handled by create
+# $2 config directory
 create_config_if_wanted()
 {
-  if [ "${handled_by_create}" -ne 0 ]; then
+  create_config_if_wanted__handled="$1"
+  create_config_if_wanted__dir="$2"
+
+  if [ "${create_config_if_wanted__handled}" -ne 0 ]; then
     log "Create requested at ${__create_config_name}, ${__create_config_target}"
     if [ ! -z "${__create_config_name}" ] && [ ! -z "${__create_config_target}" ]; then
-      check_config_dir_conditions || return 1
-      printf -- "Create new config: ${__create_config_name}\n"
+      check_config_dir_conditions "${create_config_if_wanted__dir}" || return 1
+      create_config_if_wanted__file="${create_config_if_wanted__dir}/${__create_config_name}.${CONFIG_VERSION}"
 
-      create_config_if_wanted__file="${config_dir}/${__create_config_name}.${CONFIG_VERSION}"
+      printf -- "Create new config: ${__create_config_name}\n"
 
       # Create the file
       touch "${create_config_if_wanted__file}"
 
-      # Clear the config
-      printf -- "" > "${create_config_if_wanted__file}"
-
       # Capture all hosts by default
-      printf -- "Host *\n" >> "${create_config_if_wanted__file}"
+      printf -- "Host *\n" > "${create_config_if_wanted__file}"
 
       # Set the requested identify file found at ${create_config_path}
       printf -- "    IdentityFile ${__create_config_target}\n" \
@@ -201,32 +227,50 @@ create_config_if_wanted()
       printf -- "ERROR: Cannot create new config.\n"
       printf -- "    name: ${__create_config_name}\n"
       printf -- "    target: ${__create_config_target}\n"
+
+      unset create_config_if_wanted__handled
+      unset create_config_if_wanted__dir
       return 1
     fi
   fi
+
+  unset create_config_if_wanted__handled
+  unset create_config_if_wanted__dir
+  return 0
 }
 
+##
+# Process the removal of a config file
+#
+# $1 is handled by remove
+# $1 config directory
 remove_config_if_wanted()
 {
-  if [ "${handled_by_remove}" -ne 0 ]; then
-    if [ ! -z "${remove_config_name}" ]; then
-      check_config_dir_conditions || return 1
-      check_for_binary rm
-      local target="${config_dir}/${remove_config_name}.${CONFIG_VERSION}"
-      if [ -e "${target}" ]; then
-        rm -f "${target}"
-        printf -- "Remove config: ${target}\n"
-        echo
-      else
-        printf -- "Config does not exist: ${target}\n"
-        echo
-      fi
-      unset target
+  remove_config_if_wanted__handled="$1"
+  remove_config_if_wanted__dir="$2"
+
+  if [ "${remove_config_if_wanted__handled}" -ne 0 ]; then
+    if [ ! -z "${__remove_config_name}" ]; then
+      check_config_dir_conditions "${remove_config_if_wanted__dir}" || return 1
+      check_for_binary rm || return 1
+      remove_config_if_wanted__file="${remove_config_if_wanted__dir}/${__remove_config_name}.${CONFIG_VERSION}"
+
+      rm -f "${remove_config_if_wanted__file}"
+      printf -- "Remove config: ${remove_config_if_wanted__file}\n"
+
+      unset remove_config_if_wanted__file
     else
       printf -- "ERROR: No config specified.\n"
-      return 2
+
+      unset remove_config_if_wanted__dir
+      unset remove_config_if_wanted__handled
+      return 1
     fi
   fi
+
+  unset remove_config_if_wanted__dir
+  unset remove_config_if_wanted__handled
+  return 0
 }
 
 ##
@@ -242,6 +286,7 @@ list_configs()
   check_for_binary head || return 1
 
   list_configs__count=
+  # shellcheck disable=SC2012
   list_configs__count=$(ls -1 "${list_configs__config_dir}" | wc -l)
   printf -- "Config directory: ${list_configs__config_dir}\n"
   printf -- "Number of configs: ${list_configs__count}\n"
@@ -258,21 +303,34 @@ list_configs()
   return 0
 }
 
+##
+# Check that the configuration directory exists
+#
+# $1 configuration directory
 check_config_dir_conditions()
 {
+  check_config_dir_conditions__dir="$1"
+
   # No config dir specified
   log "Check for set config dir..."
-  if [ -z "${config_dir}" ]; then
+  if [ -z "${check_config_dir_conditions__dir}" ]; then
     printf -- "ERROR: No config_dir specified\n"
+
+    unset check_config_dir_conditions__dir
     return 1
   fi
 
   # Check for the existance of the config file
   log "Check that config dir exists as a directory..."
-  if [ ! -d ${config_dir} ]; then
-    printf -- "ERROR: config_dir does not exist at:  ${config_dir}\n"
+  if [ ! -d "${check_config_dir_conditions__dir}" ]; then
+    printf -- "ERROR: config_dir does not exist at:  ${check_config_dir_conditions__dir}\n"
+
+    unset check_config_dir_conditions__dir
     return 2
   fi
+
+  unset check_config_dir_conditions__dir
+  return 0
 }
 
 check_ssh_key_conditions()
@@ -285,77 +343,108 @@ check_ssh_key_conditions()
   fi
 }
 
+##
+# Check that the wrapper can continue
+#
+# $1 configuration directory
 check_wrapper_conditions()
 {
+  check_wrapper_conditions__config="$1"
+
   log "Check that wrapper can continue..."
-  check_config_dir_conditions || return 1
-  check_ssh_key_conditions || return 2
+  check_config_dir_conditions "${check_wrapper_conditions__config}"|| return 1
+  check_ssh_key_conditions || return 1
+
+  unset check_wrapper_conditions__config
+  return 0
 }
 
+##
+# Auto update an old config file from version 1 to 2
+#
+# $1 config file directory
+# $2 config file name
 autoupdate_old_config()
 {
-  local base="$(basename "$1" )"
+  autoupdate_old_config__dir="$1"
+  autoupdate_old_config__config="$2"
+  autoupdate_old_config__base_config="$(basename "${autoupdate_old_config__config}")"
 
   # Upgrading from git-ssh config version 1
-  log "Old config file found at: ${base}"
+  log "Old config file found at: ${autoupdate_old_config__base_config}"
   log "Auto upgrade to new format"
-  log ""
+  check_for_binary head || return 1
 
-  # Run the methods using info
-  prepare_create_config_option
-  handle_create_config_name "${ssh_key}"
-  handle_create_config_path "$(cat "$1" )"
+  # Get the old ssh_path from the original config file
+  autoupdate_old_config__old="$(head -n 1 < "${autoupdate_old_config__config}" )"
+  autoupdate_old_config__mashup="${autoupdate_old_config__base_config}:${autoupdate_old_config__old}"
+  log "Run artificial call: handle_create_config ${autoupdate_old_config__mashup}"
+  handle_create_config "${autoupdate_old_config__mashup}"
 
-  local config_auto_result=
-  config_auto_result=$(create_config_if_wanted)
+  create_config_if_wanted "${autoupdate_old_config__dir}"
   if [ $? -ne 0 ]; then
     log "Failed to auto generate config for version: ${CONFIG_VERSION}"
+
+    unset autoupdate_old_config__config
+    unset autoupdate_old_config__dir
+    unset autoupdate_old_config__base_config
+    unset autoupdate_old_config__old
+    unset autoupdate_old_config__mashup
+    return 1
   else
     log "Auto generate config for version: ${CONFIG_VERSION}"
     log "Remove old config"
-    rm "$1"
-  fi
-  unset config_auto_result
-
-  # KLUDGE Duplication of code
-  # We need this check in here too because our original loop does not
-  # account for the fact that a new config was just added
-  local new_config="$1.${CONFIG_VERSION}"
-  base="$(basename "${new_config}" )"
-  log "Check for match at (new_config): ${base} and (key): ${ssh_key}.${CONFIG_VERSION}"
-  if [ "${base}" = "${ssh_key}.${CONFIG_VERSION}" ]; then
-    __git_ssh_path="${new_config}"
-    log "Set __git_ssh_path to: ${__git_ssh_path}"
-    unset new_config
-    break
+    rm -f "$1"
   fi
 
-  unset base
-  unset new_config
+  # Set the __git_ssh_path
+  __git_ssh_path="${autoupdate_old_config__config}.${CONFIG_VERSION}"
+  log "Set __git_ssh_path to: ${__git_ssh_path}"
+
+  unset autoupdate_old_config__config
+  unset autoupdate_old_config__dir
+  unset autoupdate_old_config__base_config
+  unset autoupdate_old_config__old
+  unset autoupdate_old_config__mashup
+  return 0
 }
 
+##
+# Locate all the configurations in the config_dir
+#
+# $1 configuration directory
+# $2 ssh key
 locate_config_file()
 {
+  locate_config_file__dir="$1"
+  locate_config_file__ssh="$2"
+
   # Path expanstion via shell
-  log "Find configs in ${config_dir}"
-  for config in "${config_dir}"/*; do
+  log "Find configs in ${locate_config_file__dir}"
+  for locate_config_file__config in "${locate_config_file__dir}"/*; do
 
     # Make sure we've found a config file, not folder
-    log "Check that ${config} is a file, not folder"
-    if [ ! -d "${config}" ]; then
+    log "Check that ${locate_config_file__config} is a file, not folder"
+    if [ ! -d "${locate_config_file__config}" ]; then
       # Read the config if it is the one we want
-      local base="$(basename "${config}" )"
-      log "Check for match at (config): ${base} and (key): ${ssh_key}.${CONFIG_VERSION}"
-      if [ "${base}" = "${ssh_key}" ]; then
-        autoupdate_old_config "${config}"
-      elif [ "${base}" = "${ssh_key}.${CONFIG_VERSION}" ]; then
-        __git_ssh_path="${config}"
+      locate_config_file__base_config="$(basename "${locate_config_file__config}")"
+      log "Check for match at (config): ${locate_config_file__base_config} and (key): ${locate_config_file__ssh}.${CONFIG_VERSION}"
+      if [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}" ]; then
+        autoupdate_old_config "${locate_config_file__dir}" "${locate_config_file__config}"
+      elif [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
+        __git_ssh_path="${locate_config_file__config}"
         log "Set __git_ssh_path to: ${__git_ssh_path}"
         break
       fi
-      unset base
+      unset locate_config_file__base_config
     fi
+
+    unset locate_config_file__config
   done
+
+  unset locate_config_file__dir
+  unset locate_config_file__ssh
+  return 0
 }
 
 check_valid_ssh_path()
@@ -365,32 +454,6 @@ check_valid_ssh_path()
   if [ -z "${__git_ssh_path}" ]; then
     printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
     return 1
-  fi
-}
-
-prepare_create_config_option()
-{
-  if [ "${handled_by_create}" -ne 1 ]; then
-    log "This git call is handled by create"
-    handled_by_create=1
-  fi
-
-  if [ "${expect_create_config_name}" -ne 1 ]; then
-    log "Expect create_config_name next..."
-    expect_create_config_name=1
-  fi
-}
-
-prepare_remove_config_name()
-{
-  if [ "${handled_by_remove}" -ne 1 ]; then
-    log "This git call is handled by remove"
-    handled_by_remove=1
-  fi
-
-  if [ "${expect_remove_config_name}" -ne 1 ]; then
-    log "Expect remove_config_name next..."
-    expect_remove_config_name=1
   fi
 }
 
@@ -424,13 +487,14 @@ list_wrapper_help()
 
 main()
 {
+  # handlers
+  handled_by_wrapper=0
+  handled_by_create=0
   should_list_configs=0
+  git_args=""
 
-  # Options to passthrough to git
-  # KLUDGE not currently implemented
-  #        See below in the switch statement
-  #
-  # git_options=""
+  # Location of the dir with configs stored
+  config_dir="$XDG_CONFIG_HOME/git-ssh"
 
   # We need git, cat, env, and ssh
   # In the case of git, we check that the path resolves
@@ -490,7 +554,17 @@ main()
                 long_option="${OPTARG}"
                 long_option_has_arg=0
                 ;;
-              ssh|config-dir|remove-config|ssh-args|create-config)
+              create-config)
+                long_option_has_arg=1
+                handled_by_create=1
+                long_option="${OPTARG}"
+                ;;
+              remove-config)
+                long_option_has_arg=1
+                handled_by_remove=1
+                long_option="${OPTARG}"
+                ;;
+              ssh|config-dir|ssh-args)
                 long_option_has_arg=1
                 handled_by_wrapper=1
                 long_option="${OPTARG}"
@@ -532,6 +606,7 @@ main()
               ;;
             help)
               list_wrapper_help
+              # shellcheck disable=SC2086
               exec "${GIT_BINARY}" ${git_args} --help
               ;;
             wrapper-debug)
@@ -548,16 +623,14 @@ main()
             config-dir)
               config_dir="${optind_expanded}"
               ;;
-            remove_config)
-              remove_config_name="${optind_expanded}"
-              handled_by_remove=1
+            remove-config)
+              handle_remove_config "${optind_expanded}" || return 1
               ;;
             ssh-args)
               handle_ssh_args_option "${optind_expanded}" || return 1
               ;;
             create-config)
               handle_create_config "${optind_expanded}" || return 1
-              handled_by_create=1
               ;;
           esac
         fi
@@ -574,10 +647,10 @@ main()
   fi
 
   # Remove the config if requested
-  remove_config_if_wanted || exit 1
+  remove_config_if_wanted "${handled_by_create}" "${config_dir}" || exit 1
 
   # Create the config if requested
-  create_config_if_wanted || exit 1
+  create_config_if_wanted "${config_dir}" || exit 1
 
   if [ "${should_list_configs}" -ne 0 ]; then
     list_configs "${config_dir}" || exit 1
@@ -596,10 +669,10 @@ main()
   fi
 
   # Make sure everything is set
-  check_wrapper_conditions || exit 2
+  check_wrapper_conditions "${config_dir}" || exit 2
 
   # Read the config file requested and check its valid
-  locate_config_file
+  locate_config_file "${config_dir}" "${ssh_key}"
   check_valid_ssh_path || exit 3
 
   # Run git using the ssh key that was found
