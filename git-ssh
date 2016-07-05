@@ -593,9 +593,6 @@ main()
                 ;;
             esac
             ;;
-          # ?)
-          #   log "Skip, plain text or unrecognized git option"
-          #   ;;
           *)
             log "Git option, pass arg to Git."
             log "Sanitize raw git argument: \"-${OPTARG}\""
@@ -695,7 +692,8 @@ main()
     # Just run git
     log "Call does not request wrapper options, call git normally"
     log "Do: \"${GIT_BINARY}\" ${git_args}"
-    eval "exec ${GIT_BINARY} ${git_args}"
+    # eval "exec ${GIT_BINARY} ${git_args}"
+    exec "${GIT_BINARY}" ${git_args}
   fi
 
   # Make sure everything is set
