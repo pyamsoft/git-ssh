@@ -593,13 +593,16 @@ main()
                 ;;
             esac
             ;;
+          # ?)
+          #   log "Skip, plain text or unrecognized git option"
+          #   ;;
           *)
             log "Git option, pass arg to Git."
-            log "Sanitize raw git argument: \"-${option}\""
+            log "Sanitize raw git argument: \"-${OPTARG}\""
             if [ -z "${git_args}" ]; then
-              git_args="\"-${option}\""
+              git_args="\"-${OPTARG}\""
             else
-              git_args="${git_args} \"-${option}\""
+              git_args="${git_args} \"-${OPTARG}\""
             fi
             ;;
         esac
