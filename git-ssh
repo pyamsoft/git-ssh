@@ -490,6 +490,7 @@ main()
   # handlers
   handled_by_wrapper=0
   handled_by_create=0
+  handled_by_remove=0
   should_list_configs=0
   git_args=""
 
@@ -647,10 +648,10 @@ main()
   fi
 
   # Remove the config if requested
-  remove_config_if_wanted "${handled_by_create}" "${config_dir}" || exit 1
+  remove_config_if_wanted "${handled_by_remove}" "${config_dir}" || exit 1
 
   # Create the config if requested
-  create_config_if_wanted "${config_dir}" || exit 1
+  create_config_if_wanted "${handled_by_create}" "${config_dir}" || exit 1
 
   if [ "${should_list_configs}" -ne 0 ]; then
     list_configs "${config_dir}" || exit 1
