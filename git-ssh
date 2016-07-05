@@ -173,34 +173,35 @@ handle_create_config()
 create_config_if_wanted()
 {
   if [ "${handled_by_create}" -ne 0 ]; then
-    if [ ! -z "${create_config_name}" ] && [ ! -z "${create_config_path}" ]; then
+    log "Create requested at ${__create_config_name}, ${__create_config_target}"
+    if [ ! -z "${__create_config_name}" ] && [ ! -z "${__create_config_target}" ]; then
       check_config_dir_conditions || return 1
-      printf -- "Create new config: ${create_config_name}\n"
+      printf -- "Create new config: ${__create_config_name}\n"
 
-      local config_file="${config_dir}/${create_config_name}.${CONFIG_VERSION}"
+      create_config_if_wanted__file="${config_dir}/${__create_config_name}.${CONFIG_VERSION}"
 
       # Create the file
-      touch "${config_file}"
+      touch "${create_config_if_wanted__file}"
 
       # Clear the config
-      printf -- "" > "${config_file}"
+      printf -- "" > "${create_config_if_wanted__file}"
 
       # Capture all hosts by default
-      printf -- "Host *\n" >> "${config_file}"
+      printf -- "Host *\n" >> "${create_config_if_wanted__file}"
 
       # Set the requested identify file found at ${create_config_path}
-      printf -- "    IdentityFile ${create_config_path}\n" >> "${config_file}"
+      printf -- "    IdentityFile ${__create_config_target}\n" \
+        >> "${create_config_if_wanted__file}"
 
       # Only use identities specified in the config file
-      printf -- "    IdentitiesOnly yes\n" >> "${config_file}"
+      printf -- "    IdentitiesOnly yes\n" >> "${create_config_if_wanted__file}"
 
-      unset config_file
-      echo
+      unset create_config_if_wanted__file
     else
       printf -- "ERROR: Cannot create new config.\n"
-      printf -- "    name: ${create_config_name}\n"
-      printf -- "    path: ${create_config_path}\n"
-      return 2
+      printf -- "    name: ${__create_config_name}\n"
+      printf -- "    target: ${__create_config_target}\n"
+      return 1
     fi
   fi
 }
@@ -549,12 +550,14 @@ main()
               ;;
             remove_config)
               remove_config_name="${optind_expanded}"
+              handled_by_remove=1
               ;;
             ssh-args)
               handle_ssh_args_option "${optind_expanded}" || return 1
               ;;
             create-config)
               handle_create_config "${optind_expanded}" || return 1
+              handled_by_create=1
               ;;
           esac
         fi
