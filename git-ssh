@@ -26,7 +26,7 @@ set -o pipefail
 export LC_ALL=C
 
 # git-ssh
-readonly VERSION="1.0.0"
+readonly VERSION="1.0.1"
 
 # config file version
 readonly CONFIG_VERSION="2"
@@ -483,7 +483,7 @@ list_wrapper_help()
   printf -- "  --ssh CONFIG               The name identifier of a config file in the \${config_dir}.\n"
   printf -- "  --ssh-args COMMA-OPTIONS   Comma separated list of options to pass to ssh.\n"
   printf -- "  --config-dir DIR           The path to the directory where configs are stored.\n"
-  printf -- "  --create-config NAME PATH  Create a config called NAME with\n"
+  printf -- "  --create-config NAME:PATH  Create a config called NAME with\n"
   printf -- "                             the path PATH. Does not stop operation following completion.\n"
   printf -- "  --remove-config NAME       Remove the config specified by NAME.\n"
   printf -- "                             Does not stop operation following completion.\n"
