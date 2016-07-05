@@ -21,7 +21,7 @@ The script currently handles the following option(s):
 
   The path to the directory where configs are stored.
 
-  --create-config NAME PATH
+  --create-config NAME:PATH
 
   Create a config called NAME with the path PATH.  
   Does not stop operation following completion  
