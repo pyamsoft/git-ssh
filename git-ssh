@@ -19,6 +19,9 @@
 # git-ssh
 # An ssh-key selection wrapper for git
 
+# Fail if pipe fails
+set -o pipefail
+
 # NOTE: This script does not check that the SSH key is valid, and does not
 # sanitize input. Please make sure all input passed into the script is
 # valid either in the context of the script or the git binary itself
