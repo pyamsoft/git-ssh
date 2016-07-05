@@ -44,15 +44,14 @@ ssh_key=""
 __ssh_args=""
 
 # The ssh key git should use
-git_ssh_path=""
+__git_ssh_path=""
 
 # No argument options
-should_list_configs=0
 wrapper_debug=0
 
-# Parameters for creating a new configuration
-create_config_name=""
-create_config_path=""
+# Parameters for creating a config
+__create_config_name=""
+__create_config_target=""
 
 # Parameters for removing a config
 remove_config_name=""
@@ -61,12 +60,6 @@ remove_config_name=""
 handled_by_wrapper=0
 handled_by_create=0
 handled_by_remove=0
-
-# These are set when the next passed in argument is expected
-# to be a valid parameter
-expect_create_config_name=0
-expect_create_config_path=0
-expect_remove_config_name=0
 
 log()
 {
@@ -115,14 +108,6 @@ check_for_binary()
   return 1
 }
 
-handle_create_config_name()
-{
-  log "create_config_name set to '$1'"
-  expect_create_config_name=0
-  expect_create_config_path=1
-  create_config_name="$1"
-}
-
 ##
 # Handle the parsing of command line SSH arguments
 #
@@ -146,6 +131,42 @@ handle_ssh_args_option()
 
   unset ssh_args_comma_separated
   unset split_ssh_args
+  return 0
+}
+
+handle_create_config()
+{
+  handle_create_config__args="$1"
+  handle_create_config__split=""
+
+  check_for_binary tr || return 1
+  handle_create_config__split="$(printf -- "${handle_create_config__args}" | tr ":" "\n")"
+  handle_create_config__i=0
+  # shellcheck disable=SC2154
+  for arg in ${handle_create_config__split}; do
+    if [ ${handle_create_config__i} -ge 2 ]; then
+      printf -- "Too many config arguments.\n"
+      return 1
+    elif [ ${handle_create_config__i} -eq 0 ]; then
+      __create_config_name="${arg}"
+      log "Set Config name: ${__create_config_name}"
+    elif [ ${handle_create_config__i} -eq 1 ]; then
+      __create_config_target="${arg}"
+      log "Set Config target: ${__create_config_target}"
+    fi
+    handle_create_config__i=$((handle_create_config__i + 1))
+  done
+
+  if [ -z "${__create_config_name}" ] || [ -z "${__create_config_target}" ]; then
+    printf -- "Either config name or target is not specified\n"
+    return 1
+  fi
+
+  log "Config name: ${__create_config_name}, target: ${__create_config_target}"
+
+  unset handle_create_config__i
+  unset handle_create_config__args
+  unset split_config_args
   return 0
 }
 
@@ -302,8 +323,8 @@ autoupdate_old_config()
   base="$(basename "${new_config}" )"
   log "Check for match at (new_config): ${base} and (key): ${ssh_key}.${CONFIG_VERSION}"
   if [ "${base}" = "${ssh_key}.${CONFIG_VERSION}" ]; then
-    git_ssh_path="${new_config}"
-    log "Set git_ssh_path to: ${git_ssh_path}"
+    __git_ssh_path="${new_config}"
+    log "Set __git_ssh_path to: ${__git_ssh_path}"
     unset new_config
     break
   fi
@@ -327,8 +348,8 @@ locate_config_file()
       if [ "${base}" = "${ssh_key}" ]; then
         autoupdate_old_config "${config}"
       elif [ "${base}" = "${ssh_key}.${CONFIG_VERSION}" ]; then
-        git_ssh_path="${config}"
-        log "Set git_ssh_path to: ${git_ssh_path}"
+        __git_ssh_path="${config}"
+        log "Set __git_ssh_path to: ${__git_ssh_path}"
         break
       fi
       unset base
@@ -339,8 +360,8 @@ locate_config_file()
 check_valid_ssh_path()
 {
   # If no matching key was found
-  log "Check for git_ssh_path: ${git_ssh_path}"
-  if [ -z "${git_ssh_path}" ]; then
+  log "Check for __git_ssh_path: ${__git_ssh_path}"
+  if [ -z "${__git_ssh_path}" ]; then
     printf -- "ERROR: No key found which matches the requested key: ${ssh_key}\n"
     return 1
   fi
@@ -402,6 +423,8 @@ list_wrapper_help()
 
 main()
 {
+  should_list_configs=0
+
   # Options to passthrough to git
   # KLUDGE not currently implemented
   #        See below in the switch statement
@@ -426,11 +449,14 @@ main()
   fi
 
   if [ $# -gt 0 ]; then
-    long_option=""
+    long_option=
+    long_option_has_arg=
     optind_expanded=
     eval optind_expanded="\$${OPTIND}"
     while [ -n "${optind_expanded}" ]; do
+      log "CURRENT: $1"
       while getopts ":-:" option; do
+        log "OPTION: ${option} ${OPTARG}"
         # Set only on long option with arg
         if [ -n "${long_option}" ]; then
           error_msg "Long option --${long_option} expects argument"
@@ -440,59 +466,33 @@ main()
         long_option=""
         case "${option}" in
           -)
-            info_msg "parse long option: -${option}${OPTARG}"
+            log "parse long option: -${option}${OPTARG}"
             case "${OPTARG}" in
               list-configs)
                 handled_by_wrapper=1
                 should_list_configs=1
+                long_option_has_arg=0
                 ;;
               wrapper-debug)
-                handled_by_wrapper=1
+                long_option_has_arg=0
+                handled_by_wrapper=0
                 wrapper_debug=1
                 log "Turn on wrapper debugging"
                 ;;
-              wrapper-help)
-                handled_by_wrapper=1
-                list_wrapper_help
-                # The help call ends the script
-                return 0
-                ;;
-              help)
-                handled_by_wrapper=1
-                list_wrapper_help
-                eval "exec ${GIT_BINARY} ${git_args} --help"
-                ;;
-              wrapper-version)
-                handled_by_wrapper=1
-                print_version
-                # The version call ends the script
-                return 0
-                ;;
-              version)
-                handled_by_wrapper=1
-                print_version
-                eval "exec ${GIT_BINARY} ${git_args} --version"
-                ;;
-              ssh|config-dir|remove-config|ssh-args)
+              version|wrapper-version)
+                long_option_has_arg=0
                 handled_by_wrapper=1
                 long_option="${OPTARG}"
                 ;;
-              create-config)
+              help|wrapper-help)
                 handled_by_wrapper=1
-                # need two things here
+                long_option="${OPTARG}"
+                long_option_has_arg=0
                 ;;
-              *)
-                log "Sanitize raw git argument: \"$1\""
-                if [ -z "${git_args}" ]; then
-                  git_args="\"${1}\""
-                else
-                  git_args="${git_args} \"${1}\""
-                fi
-                # git_options="$1 ${git_options}"
-                shift
-
-                # KLUDGE Limiations
-                # Do nothing
+              ssh|config-dir|remove-config|ssh-args|create-config)
+                long_option_has_arg=1
+                handled_by_wrapper=1
+                long_option="${OPTARG}"
                 ;;
             esac
             ;;
@@ -506,33 +506,63 @@ main()
         optind_expanded=""
       fi
 
+      log "Continuing: ${long_option} | ${optind_expanded}"
       if [ -z "${optind_expanded}" ]; then
-        if [ -n "${long_option}" ]; then
-          error_msg "Long option --${long_option} expects argument"
+        if [ -n "${long_option}" ] && [ "${long_option_has_arg}" -eq 1 ]; then
+          printf -- "Long option --${long_option} expects argument\n"
           return 1
-        else
-          break
         fi
       else
-        # This is a plain arg and should be handled by one of the options which takes an argument
-        case "${long_option}" in
-          ssh)
-            ssh_key="${optind_expanded}"
-            ;;
-          config-dir)
-            config_dir="${optind_expanded}"
-            ;;
-          remove_config)
-            remove_config_name="${optind_expanded}"
-            ;;
-          ssh-args)
-            handle_ssh_args_option "${optind_expanded}" || return 1
-            ;;
-        esac
-
-        # Set back to null
-        long_option=""
+        if [ -z "${long_option}" ]; then
+          log "No long option, pass arg to Git."
+          log "Sanitize raw git argument: \"${optind_expanded}\""
+          if [ -z "${git_args}" ]; then
+            git_args="${optind_expanded}"
+          else
+            git_args="${git_args} ${optind_expanded}"
+          fi
+        elif [ "${long_option_has_arg}" -eq 0 ]; then
+          # This is a plain arg and should be handled by one of the options which takes an argument
+          log "Has option no argument: ${long_option}"
+          case "${long_option}" in
+            wrapper-help)
+              list_wrapper_help
+              return 0
+              ;;
+            help)
+              list_wrapper_help
+              exec "${GIT_BINARY}" ${git_args} --help
+              ;;
+            wrapper-debug)
+              log "Turn on wrapper debugging"
+              ;;
+          esac
+        else
+          # This is a plain arg and should be handled by one of the options which takes an argument
+          log "Has option with argument: ${long_option} ${optind_expanded}"
+          case "${long_option}" in
+            ssh)
+              ssh_key="${optind_expanded}"
+              ;;
+            config-dir)
+              config_dir="${optind_expanded}"
+              ;;
+            remove_config)
+              remove_config_name="${optind_expanded}"
+              ;;
+            ssh-args)
+              handle_ssh_args_option "${optind_expanded}" || return 1
+              ;;
+            create-config)
+              handle_create_config "${optind_expanded}" || return 1
+              ;;
+          esac
+        fi
       fi
+
+      # Set back to null
+      long_option=
+      long_option_has_arg=0
 
       # Shift the options
       shift $OPTIND
@@ -551,14 +581,15 @@ main()
     exit 1
   fi
 
-
   # Wrapper does not play a part
   if [ "${handled_by_wrapper}" -eq 0 ]; then
     # Just run git
     # We use eval to convert the raw strings into arguments for git
     # This is not the safest solution but currently appears to work
     log "Call does not request wrapper options, call git normally"
-    eval "exec ${GIT_BINARY} ${git_args}"
+    log "Do: \"${GIT_BINARY}\" ${git_args}"
+    # shellcheck disable=SC2086
+    exec "${GIT_BINARY}" ${git_args}
   fi
 
   # Make sure everything is set
@@ -581,10 +612,10 @@ main()
   # Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
   # and single quotes to be passed through
   log "Call requests wrapper options, call wrapper git"
-  log "GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${__ssh_args}'"
+  log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${__ssh_args}'"
   log "GIT: ${GIT_BINARY}"
   log "ARGS: ${git_args}"
-  eval "exec env GIT_SSH_COMMAND='ssh -F \"${git_ssh_path}\" ${__ssh_args}' ${GIT_BINARY} ${git_args}"
+  eval "exec env GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${__ssh_args}' ${GIT_BINARY} ${git_args}"
 }
 
 main "$@"
