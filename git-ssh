@@ -40,6 +40,9 @@ readonly CONFIG_VERSION="2"
 # Location of the actual git binary
 readonly GIT_BINARY="/usr/bin/git"
 
+# List of plain arguments to pass to git
+__git_args=""
+
 # The ssh key git should use
 __git_ssh_path=""
 
@@ -487,12 +490,20 @@ check_valid_ssh_path()
   return 0
 }
 
+##
+# Print current version
+#
 print_version()
 {
   printf -- "git-ssh [${VERSION}]\n"
   echo
+
+  return 0
 }
 
+##
+# Print wrapper centric help
+#
 list_wrapper_help()
 {
   print_version
@@ -513,8 +524,33 @@ list_wrapper_help()
   printf -- "  --wrapper-help             Prints only this help block\n"
   printf -- "  --help                     Prints this help block followed by git --help\n"
   echo
+
+  return 0
 }
 
+##
+# Appends a plain argument to the list that is passed through to $GIT_BINARY
+#
+# $1 argument
+append_git_argument()
+{
+  append_git_argument__arg="$1"
+
+  log "Sanitize raw git argument: \"${append_git_argument__arg}\""
+  if [ -z "${__git_args}" ]; then
+    __git_args="\"${append_git_argument__arg}\""
+  else
+    __git_args="${__git_args} \"${append_git_argument__arg}\""
+  fi
+
+  unset append_git_argument__arg
+  return 0
+}
+
+##
+# Main function
+#
+# $@ command line arguments
 main()
 {
   # handlers
@@ -523,7 +559,6 @@ main()
   handled_by_remove=0
   should_list_configs=0
 
-  git_args=""
   ssh_key=""
   ssh_args=""
 
@@ -602,24 +637,13 @@ main()
                 ;;
               *)
                 log "Long option that is not handled by script passed."
-                log "Git option, pass arg to Git."
-                log "Sanitize raw git argument: \"--${OPTARG}\""
-                if [ -z "${git_args}" ]; then
-                  git_args="\"--${OPTARG}\""
-                else
-                  git_args="${git_args} \"--${OPTARG}\""
-                fi
+                append_git_argument "--${OPTARG}" || return 1
                 ;;
             esac
             ;;
           *)
             log "Git option, pass arg to Git."
-            log "Sanitize raw git argument: \"-${OPTARG}\""
-            if [ -z "${git_args}" ]; then
-              git_args="\"-${OPTARG}\""
-            else
-              git_args="${git_args} \"-${OPTARG}\""
-            fi
+            append_git_argument "-${OPTARG}" || return 1
             ;;
         esac
       done
@@ -669,7 +693,7 @@ main()
               ;;
             help)
               list_wrapper_help || return 1
-              eval "exec ${GIT_BINARY} ${git_args} --help"
+              eval "exec ${GIT_BINARY} ${__git_args} --help"
               ;;
             wrapper-version)
               print_version || return 1
@@ -677,7 +701,7 @@ main()
               ;;
             version)
               print_version || return 1
-              eval "exec ${GIT_BINARY} ${git_args} --version"
+              eval "exec ${GIT_BINARY} ${__git_args} --version"
               ;;
             wrapper-debug)
               log "Turn on wrapper debugging"
@@ -687,13 +711,8 @@ main()
       else
         if [ -n "${optind_expanded}" ]; then
           # Just pass argument to git
-          log "No long option, pass arg to Git."
-          log "Sanitize raw git argument: \"${optind_expanded}\""
-          if [ -z "${git_args}" ]; then
-            git_args="\"${optind_expanded}\""
-          else
-            git_args="${git_args} \"${optind_expanded}\""
-          fi
+          log "No option, pass arg to Git."
+          append_git_argument "${optind_expanded}" || return 1
         else
           log "No argument passed"
         fi
@@ -724,8 +743,8 @@ main()
   if [ "${handled_by_wrapper}" -eq 0 ]; then
     # Just run git
     log "Call does not request wrapper options, call git normally"
-    log "Do: \"${GIT_BINARY}\" ${git_args}"
-    eval "exec ${GIT_BINARY} ${git_args}"
+    log "Do: \"${GIT_BINARY}\" ${__git_args}"
+    eval "exec ${GIT_BINARY} ${__git_args}"
   fi
 
   # Make sure everything is set
@@ -747,10 +766,10 @@ main()
   log "Call requests wrapper options, call wrapper git"
   log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${ssh_args}'"
   log "GIT: ${GIT_BINARY}"
-  log "ARGS: ${git_args}"
+  log "ARGS: ${__git_args}"
   export GIT_SSH_COMMAND="ssh -F \"${__git_ssh_path}\" ${ssh_args}"
 
-  eval "exec ${GIT_BINARY} ${git_args}"
+  eval "exec ${GIT_BINARY} ${__git_args}"
 }
 
 main "$@" || exit 1
