@@ -315,8 +315,11 @@ list_configs()
 
   echo
   for list_configs__file in "${list_configs__config_dir}"/*; do
-    printf -- "[$(basename "${list_configs__file}")]\n"
-    printf -- "Path: $(cat "${list_configs__file}" )\n"
+    log "Potential config at: ${list_configs__file}"
+    if [ -f "${list_configs__file}" ]; then
+      printf -- "[$(basename "${list_configs__file}")]\n"
+      printf -- "Path: $(cat "${list_configs__file}" )\n"
+    fi
     echo
   done
 
