@@ -354,7 +354,7 @@ check_config_dir_conditions()
 # $1 ssh_key variable
 check_ssh_key_conditions()
 {
-  check_ssh_key_conditions__ssh="$2"
+  check_ssh_key_conditions__ssh="$1"
 
   log "Check that an ssh_key was requested..."
   if [ -z "${check_ssh_key_conditions__ssh}" ]; then
