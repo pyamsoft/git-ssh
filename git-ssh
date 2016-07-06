@@ -19,17 +19,25 @@
 # git-ssh
 # An ssh-key selection wrapper for git
 
+# This will cause calls like:
+#
+# $ sh git-ssh
+#
+# to fail.
+#
 # Prevent the script from being sourced
-called_as="$(basename "$_")"
-if [ "${called_as}" != "git-ssh" ] && [ "${called_as}" != "git" ]; then
-  # Return, script was sourced
-  unset called_as
-  return 0
-fi
-unset called_as
+# called_as="$(basename "$_")"
+# if [ "${called_as}" != "git-ssh" ] && [ "${called_as}" != "git" ]; then
+#   # Return, script was sourced
+#   unset called_as
+#   return 0
+# fi
+# unset called_as
 
+# dash does not understand pipefail
+#
 # Fail if pipe fails
-set -o pipefail
+# set -o pipefail
 
 # Export the LC as the default C so that we do not run into locale based quirks
 export LC_ALL=C
