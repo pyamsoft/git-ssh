@@ -623,11 +623,11 @@ main()
                 __wrapper_debug=1
                 log "Turn on wrapper debugging"
                 ;;
-              version|wrapper-version)
+              wrapper-version)
                 long_option_has_arg=0
                 long_option="${OPTARG}"
                 ;;
-              help|wrapper-help)
+              wrapper-help)
                 long_option="${OPTARG}"
                 long_option_has_arg=0
                 ;;
@@ -702,18 +702,22 @@ main()
               list_wrapper_help || return 1
               return 0
               ;;
-            help)
-              list_wrapper_help || return 1
-              eval "exec ${GIT_BINARY} ${__git_args} --help"
-              ;;
+            # Do not override git calls
+            #
+            # help)
+            #   list_wrapper_help || return 1
+            #   eval "exec ${GIT_BINARY} ${__git_args} --help"
+            #   ;;
             wrapper-version)
               print_version || return 1
               return 0
               ;;
-            version)
-              print_version || return 1
-              eval "exec ${GIT_BINARY} ${__git_args} --version"
-              ;;
+            # Do not override git calls
+            #
+            # version)
+            #   print_version || return 1
+            #   eval "exec ${GIT_BINARY} ${__git_args} --version"
+            #   ;;
             wrapper-debug)
               log "Turn on wrapper debugging"
               ;;
