@@ -178,9 +178,7 @@ handle_create_config()
     return 1
   fi
 
-  # Echo output
   log "Config name: ${__create_config_name}, target: ${__create_config_target}"
-  printf -- "${__create_config_name}\n${__create_config_target}"
 
   unset handle_create_config__i
   unset handle_create_config__args
@@ -415,7 +413,8 @@ autoupdate_old_config()
   log "Run artificial call: handle_create_config ${autoupdate_old_config__mashup}"
   handle_create_config "${autoupdate_old_config__mashup}" || return 1
 
-  create_config_if_wanted "${autoupdate_old_config__dir}"
+  # Pass a artificial handled flag
+  create_config_if_wanted 1 "${autoupdate_old_config__dir}"
   if [ $? -ne 0 ]; then
     log "Failed to auto generate config for version: ${CONFIG_VERSION}"
 
@@ -427,9 +426,9 @@ autoupdate_old_config()
     return 1
   else
     log "Auto generate config for version: ${CONFIG_VERSION}"
-    log "Remove old config"
+    log "Remove old config ${autoupdate_old_config__config}"
     check_for_binary rm || return 1
-    rm -f "$1"
+    rm -f "${autoupdate_old_config__config}"
   fi
 
   # Set the __git_ssh_path
