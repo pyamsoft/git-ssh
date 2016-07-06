@@ -733,11 +733,30 @@ main()
       long_option=
       long_option_has_arg=0
 
-      # Shift the options
-      shift $OPTIND
-      OPTIND=1
+      option_shift_count="${OPTIND}"
+      log "Option count: $#"
+      log "If possible, shift by: ${option_shift_count}"
+      while [ "$#" -lt "${option_shift_count}" ]; do
+        log "Shift count is too large, decrement"
+        option_shift_count=$((option_shift_count - 1))
+        log "If possible, shift by: ${option_shift_count}"
+      done
+
+      # Need this here incase the loop doesn't run
+      if [ "$#" -ge "${option_shift_count}" ]; then
+        # Shift the options
+        log "Shift by: ${option_shift_count}"
+        shift ${option_shift_count}
+        OPTIND=1
+      fi
+
+      # Unset
+      unset option_shift_count
     done
   fi
+
+  log "After loop argument count: $#"
+  log "After loop OPTIND count: ${OPTIND}"
 
   # Remove the config if requested
   remove_config_if_wanted "${handled_by_remove}" "${config_dir}" || return 1
