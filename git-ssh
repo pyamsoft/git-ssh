@@ -307,21 +307,21 @@ list_configs()
   check_for_binary wc || return 1
   check_for_binary head || return 1
 
-  list_configs__count=
-  # shellcheck disable=SC2012
-  list_configs__count=$(ls -1 "${list_configs__config_dir}" | wc -l)
   printf -- "Config directory: ${list_configs__config_dir}\n"
-  printf -- "Number of configs: ${list_configs__count}\n"
 
-  echo
+  list_configs__count=0
   for list_configs__file in "${list_configs__config_dir}"/*; do
     log "Potential config at: ${list_configs__file}"
     if [ -f "${list_configs__file}" ]; then
+      list_configs__count=$((list_configs__count + 1))
       printf -- "[$(basename "${list_configs__file}")]\n"
       printf -- "Path: $(cat "${list_configs__file}" )\n"
+      echo
     fi
-    echo
   done
+
+  echo
+  printf -- "Number of configs: ${list_configs__count}\n"
 
   unset list_configs__config_dir
   unset list_configs__count
