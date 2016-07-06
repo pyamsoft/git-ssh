@@ -303,7 +303,7 @@ remove_config_if_wanted()
 list_configs()
 {
   list_configs__config_dir="$1"
-  check_config_dir_conditions || return 1
+  check_config_dir_conditions "${list_configs__config_dir}" || return 1
   check_for_binary ls || return 1
   check_for_binary wc || return 1
   check_for_binary head || return 1
@@ -574,7 +574,7 @@ main()
   ssh_args=""
 
   # Location of the dir with configs stored
-  config_dir="$XDG_CONFIG_HOME/git-ssh"
+  config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/git-ssh"
 
   # We need git, cat, env, and ssh
   # In the case of git, we check that the path resolves
