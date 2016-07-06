@@ -531,9 +531,7 @@ list_wrapper_help()
   printf -- "                             Stops operation following completion.\n"
   printf -- "  --wrapper-debug            Enables debugging statements\n"
   printf -- "  --wrapper-version          Prints the current wrapper version\n"
-  printf -- "  --version                  Prints the current wrapper version followed by git --version\n"
   printf -- "  --wrapper-help             Prints only this help block\n"
-  printf -- "  --help                     Prints this help block followed by git --help\n"
   echo
 
   return 0
