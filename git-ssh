@@ -605,7 +605,7 @@ main()
         log "OPTION: ${option} ${OPTARG}"
         # Set only on long option with arg
         if [ -n "${long_option}" ]; then
-          error_msg "Long option --${long_option} expects argument"
+          printf -- "Long option --${long_option} expects argument"
           return 1
         fi
 
