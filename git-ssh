@@ -196,6 +196,7 @@ handle_remove_config()
   handle_remove_config__dir="$1"
   handle_remove_config__file="$2"
 
+  log "Check for file exists: ${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}"
   if [ ! -f "${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}" ]; then
     printf -- "Config does not exist, cannot remove."
 
@@ -684,7 +685,7 @@ main()
               config_dir="${optind_expanded}"
               ;;
             remove-config)
-              handle_remove_config "${optind_expanded}" || return 1
+              handle_remove_config "${config_dir}" "${optind_expanded}" || return 1
               ;;
             ssh-args)
               ssh_args="$(handle_ssh_args_option "${optind_expanded}")" || return 1
