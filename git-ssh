@@ -20,10 +20,13 @@
 # An ssh-key selection wrapper for git
 
 # Prevent the script from being sourced
-if [ "$(basename "$_")" != "git-ssh" ] && [ "$(basename "$_")" != "git" ]; then
+called_as="$(basename "$_")"
+if [ "${called_as}" != "git-ssh" ] && [ "${called_as}" != "git" ]; then
   # Return, script was sourced
+  unset called_as
   return 0
 fi
+unset called_as
 
 # Fail if pipe fails
 set -o pipefail
@@ -32,7 +35,7 @@ set -o pipefail
 export LC_ALL=C
 
 # git-ssh
-readonly VERSION="1.0.3"
+readonly VERSION="1.0.4"
 
 # config file version
 readonly CONFIG_VERSION="2"
