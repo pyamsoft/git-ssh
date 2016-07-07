@@ -156,7 +156,8 @@ handle_create_config()
   handle_create_config__split=""
 
   check_binary tr || return 1
-  handle_create_config__split="$(printf -- "${handle_create_config__args}" | tr ":" "\n")"
+  handle_create_config__split="$(printf -- "${handle_create_config__args}" \
+    | tr ":" "\n")"
   handle_create_config__i=0
   # shellcheck disable=SC2154
   for arg in ${handle_create_config__split}; do
@@ -173,7 +174,8 @@ handle_create_config()
     handle_create_config__i=$((handle_create_config__i + 1))
   done
 
-  if [ -z "${__create_config_name}" ] || [ -z "${__create_config_target}" ]; then
+  if [ -z "${__create_config_name}" ] \
+    || [ -z "${__create_config_target}" ]; then
     printf -- "Either config name or target is not specified\n"
     return 1
   fi
@@ -195,19 +197,25 @@ handle_remove_config()
 {
   handle_remove_config__dir="$1"
   handle_remove_config__file="$2"
+  handle_remove_config__check="$(cat << EOF
+${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}"
+EOF
+)"
 
-  log "Check for file exists: ${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}"
-  if [ ! -f "${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}" ]; then
+  log "Check for file exists: ${handle_remove_config__check}"
+  if [ ! -f "${handle_remove_config__check}" ]; then
     printf -- "Config does not exist, cannot remove."
 
     unset handle_remove_config__dir
     unset handle_remove_config__file
+    unset handle_remove_config__check
     return 1
   else
     log "Config file exists, set it"
     __remove_config_name="${handle_remove_config__file}"
   fi
 
+  unset handle_remove_config__check
   unset handle_remove_config__dir
   unset handle_remove_config__file
   return 0
