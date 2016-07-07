@@ -105,7 +105,6 @@ check_for_binary()
     unset check_for_binary__result
   done
 
-  IFS="${check_for_binary__old_ifs}"
   printf -- "Binary '${check_for_binary__bin}' not found in \$PATH"
 
   unset check_for_binary__result
@@ -157,8 +156,7 @@ handle_create_config()
   handle_create_config__split=""
 
   check_for_binary tr || return 1
-  handle_create_config__split="$(printf -- "${handle_create_config__args}" \
-    | tr ":" "\n")"
+  handle_create_config__split="$(printf -- "${handle_create_config__args}" | tr ":" "\n")"
   handle_create_config__i=0
   # shellcheck disable=SC2154
   for arg in ${handle_create_config__split}; do
@@ -175,8 +173,7 @@ handle_create_config()
     handle_create_config__i=$((handle_create_config__i + 1))
   done
 
-  if [ -z "${__create_config_name}" ] \
-    || [ -z "${__create_config_target}" ]; then
+  if [ -z "${__create_config_name}" ] || [ -z "${__create_config_target}" ]; then
     printf -- "Either config name or target is not specified\n"
     return 1
   fi
@@ -198,22 +195,19 @@ handle_remove_config()
 {
   handle_remove_config__dir="$1"
   handle_remove_config__file="$2"
-  handle_remove_config__check="${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}"
 
-  log "Check for file exists: ${handle_remove_config__check}"
-  if [ ! -f "${handle_remove_config__check}" ]; then
+  log "Check for file exists: ${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}"
+  if [ ! -f "${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}" ]; then
     printf -- "Config does not exist, cannot remove."
 
     unset handle_remove_config__dir
     unset handle_remove_config__file
-    unset handle_remove_config__check
     return 1
   else
     log "Config file exists, set it"
     __remove_config_name="${handle_remove_config__file}"
   fi
 
-  unset handle_remove_config__check
   unset handle_remove_config__dir
   unset handle_remove_config__file
   return 0
@@ -231,10 +225,8 @@ create_config_if_wanted()
 
   if [ "${create_config_if_wanted__handled}" -ne 0 ]; then
     log "Create requested at ${__create_config_name}, ${__create_config_target}"
-    if [ ! -z "${__create_config_name}" ] \
-      && [ ! -z "${__create_config_target}" ]; then
-      check_config_dir_conditions "${create_config_if_wanted__dir}" \
-        || return 1
+    if [ ! -z "${__create_config_name}" ] && [ ! -z "${__create_config_target}" ]; then
+      check_config_dir_conditions "${create_config_if_wanted__dir}" || return 1
       create_config_if_wanted__file="${create_config_if_wanted__dir}/${__create_config_name}.${CONFIG_VERSION}"
 
       printf -- "Create new config: ${__create_config_name}\n"
@@ -474,14 +466,10 @@ locate_config_file()
     if [ ! -d "${locate_config_file__config}" ]; then
       # Read the config if it is the one we want
       locate_config_file__base_config="$(basename "${locate_config_file__config}")"
-      log "Check for match at (config): ${locate_config_file__base_config} \
-        and (key): ${locate_config_file__ssh}.${CONFIG_VERSION}"
-      if [ "${locate_config_file__base_config}" \
-        = "${locate_config_file__ssh}" ]; then
-        autoupdate_old_config "${locate_config_file__dir}" \
-          "${locate_config_file__config}" || return 1
-      elif [ "${locate_config_file__base_config}" \
-        = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
+      log "Check for match at (config): ${locate_config_file__base_config} and (key): ${locate_config_file__ssh}.${CONFIG_VERSION}"
+      if [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}" ]; then
+        autoupdate_old_config "${locate_config_file__dir}" "${locate_config_file__config}" || return 1
+      elif [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
         __git_ssh_path="${locate_config_file__config}"
         log "Set __git_ssh_path to: ${__git_ssh_path}"
         break
@@ -508,8 +496,7 @@ check_valid_ssh_path()
   # If no matching key was found
   log "Check for __git_ssh_path: ${__git_ssh_path}"
   if [ -z "${__git_ssh_path}" ]; then
-    printf -- "ERROR: No key found which matches the requested \
-      key: ${check_valid_ssh_path__name}\n"
+    printf -- "ERROR: No key found which matches the requested key: ${check_valid_ssh_path__name}\n"
     return 1
   fi
 
@@ -689,8 +676,7 @@ main()
             return 1
           fi
 
-          # This is a plain arg and should be handled by
-          # one of the options which takes an argument
+          # This is a plain arg and should be handled by one of the options which takes an argument
           log "Has option with argument: ${long_option} ${optind_expanded}"
           case "${long_option}" in
             ssh)
@@ -700,20 +686,17 @@ main()
               config_dir="${optind_expanded}"
               ;;
             remove-config)
-              handle_remove_config "${config_dir}" "${optind_expanded}" \
-                || return 1
+              handle_remove_config "${config_dir}" "${optind_expanded}" || return 1
               ;;
             ssh-args)
-              ssh_args="$(handle_ssh_args_option "${optind_expanded}")" \
-                || return 1
+              ssh_args="$(handle_ssh_args_option "${optind_expanded}")" || return 1
               ;;
             create-config)
               handle_create_config "${optind_expanded}" || return 1
               ;;
           esac
         else
-          # This is a plain arg and should be handled by
-          # one of the options which takes an argument
+          # This is a plain arg and should be handled by one of the options which takes an argument
           log "Has option no argument: ${long_option}"
           case "${long_option}" in
             wrapper-help)
