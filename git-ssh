@@ -79,38 +79,38 @@ log()
 #
 # $1 the binary to check on the PATH
 ##
-check_for_binary()
+check_binary()
 {
-  check_for_binary__bin="$1"
-  check_for_binary__old_ifs="${IFS}"
-  if [ -z "${check_for_binary__bin}" ]; then
+  check_binary__bin="$1"
+  check_binary__old_ifs="${IFS}"
+  if [ -z "${check_binary__bin}" ]; then
     printf -- "Must specify a path to a binary"
     return 1
   fi
 
   IFS=":"
-  for check_for_binary__path in ${PATH}; do
-    check_for_binary__result=
-    check_for_binary__result="${check_for_binary__path}/${check_for_binary__bin}"
-    if [ -e "${check_for_binary__result}" ]; then
-      IFS="${check_for_binary__old_ifs}"
+  for check_binary__path in ${PATH}; do
+    check_binary__result=
+    check_binary__result="${check_binary__path}/${check_binary__bin}"
+    if [ -e "${check_binary__result}" ]; then
+      IFS="${check_binary__old_ifs}"
 
-      unset check_for_binary__result
-      unset check_for_binary__bin
-      unset check_for_binary__old_ifs
-      unset check_for_binary__path
+      unset check_binary__result
+      unset check_binary__bin
+      unset check_binary__old_ifs
+      unset check_binary__path
       return 0
     fi
 
-    unset check_for_binary__result
+    unset check_binary__result
   done
 
-  printf -- "Binary '${check_for_binary__bin}' not found in \$PATH"
+  printf -- "Binary '${check_binary__bin}' not found in \$PATH"
 
-  unset check_for_binary__result
-  unset check_for_binary__bin
-  unset check_for_binary__old_ifs
-  unset check_for_binary__path
+  unset check_binary__result
+  unset check_binary__bin
+  unset check_binary__old_ifs
+  unset check_binary__path
   return 1
 }
 
@@ -126,7 +126,7 @@ handle_ssh_args_option()
   ssh_args_correct=""
   split_ssh_args=
 
-  check_for_binary tr || return 1
+  check_binary tr || return 1
   split_ssh_args="$(printf -- "${ssh_args_comma_separated}" | tr "," "\n")"
   for arg in ${split_ssh_args}; do
     if [ -z "${ssh_args_correct}" ]; then
@@ -155,7 +155,7 @@ handle_create_config()
   handle_create_config__args="$1"
   handle_create_config__split=""
 
-  check_for_binary tr || return 1
+  check_binary tr || return 1
   handle_create_config__split="$(printf -- "${handle_create_config__args}" | tr ":" "\n")"
   handle_create_config__i=0
   # shellcheck disable=SC2154
@@ -274,7 +274,7 @@ remove_config_if_wanted()
   if [ "${remove_config_if_wanted__handled}" -ne 0 ]; then
     if [ ! -z "${__remove_config_name}" ]; then
       check_config_dir_conditions "${remove_config_if_wanted__dir}" || return 1
-      check_for_binary rm || return 1
+      check_binary rm || return 1
       remove_config_if_wanted__file="${remove_config_if_wanted__dir}/${__remove_config_name}.${CONFIG_VERSION}"
 
       rm -f "${remove_config_if_wanted__file}"
@@ -303,9 +303,9 @@ list_configs()
 {
   list_configs__config_dir="$1"
   check_config_dir_conditions "${list_configs__config_dir}" || return 1
-  check_for_binary ls || return 1
-  check_for_binary wc || return 1
-  check_for_binary head || return 1
+  check_binary ls || return 1
+  check_binary wc || return 1
+  check_binary head || return 1
 
   printf -- "Config directory: ${list_configs__config_dir}\n"
 
@@ -409,7 +409,7 @@ autoupdate_old_config()
   # Upgrading from git-ssh config version 1
   log "Old config file found at: ${autoupdate_old_config__base_config}"
   log "Auto upgrade to new format"
-  check_for_binary head || return 1
+  check_binary head || return 1
 
   # Get the old ssh_path from the original config file
   autoupdate_old_config__old="$(head -n 1 < "${autoupdate_old_config__config}" )"
@@ -431,7 +431,7 @@ autoupdate_old_config()
   else
     log "Auto generate config for version: ${CONFIG_VERSION}"
     log "Remove old config ${autoupdate_old_config__config}"
-    check_for_binary rm || return 1
+    check_binary rm || return 1
     rm -f "${autoupdate_old_config__config}"
   fi
 
@@ -584,9 +584,9 @@ main()
     return 1
   fi
 
-  check_for_binary cat
-  check_for_binary ssh
-  check_for_binary env
+  check_binary cat
+  check_binary ssh
+  check_binary env
 
   # We have everything, let's go
   if [ -z "$1" ]; then
