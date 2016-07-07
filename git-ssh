@@ -198,7 +198,7 @@ handle_remove_config()
   handle_remove_config__dir="$1"
   handle_remove_config__file="$2"
   handle_remove_config__check="$(cat << EOF
-${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}"
+${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}
 EOF
 )"
 
@@ -233,9 +233,14 @@ create_config_if_wanted()
 
   if [ "${create_config_if_wanted__handled}" -ne 0 ]; then
     log "Create requested at ${__create_config_name}, ${__create_config_target}"
-    if [ ! -z "${__create_config_name}" ] && [ ! -z "${__create_config_target}" ]; then
-      check_config_dir_conditions "${create_config_if_wanted__dir}" || return 1
-      create_config_if_wanted__file="${create_config_if_wanted__dir}/${__create_config_name}.${CONFIG_VERSION}"
+    if [ ! -z "${__create_config_name}" ] \
+      && [ ! -z "${__create_config_target}" ]; then
+      check_config_dir_conditions "${create_config_if_wanted__dir}" \
+        || return 1
+      create_config_if_wanted__file="$(cat << EOF
+${create_config_if_wanted__dir}/${__create_config_name}.${CONFIG_VERSION}
+EOF
+)"
 
       printf -- "Create new config: ${__create_config_name}\n"
 
@@ -250,7 +255,8 @@ create_config_if_wanted()
         >> "${create_config_if_wanted__file}"
 
       # Only use identities specified in the config file
-      printf -- "    IdentitiesOnly yes\n" >> "${create_config_if_wanted__file}"
+      printf -- "    IdentitiesOnly yes\n" \
+        >> "${create_config_if_wanted__file}"
 
       unset create_config_if_wanted__file
     else
@@ -281,9 +287,13 @@ remove_config_if_wanted()
 
   if [ "${remove_config_if_wanted__handled}" -ne 0 ]; then
     if [ ! -z "${__remove_config_name}" ]; then
-      check_config_dir_conditions "${remove_config_if_wanted__dir}" || return 1
+      check_config_dir_conditions "${remove_config_if_wanted__dir}" \
+        || return 1
       check_binary rm || return 1
-      remove_config_if_wanted__file="${remove_config_if_wanted__dir}/${__remove_config_name}.${CONFIG_VERSION}"
+      remove_config_if_wanted__file="$(cat << EOF
+${remove_config_if_wanted__dir}/${__remove_config_name}.${CONFIG_VERSION}
+EOF
+)"
 
       rm -f "${remove_config_if_wanted__file}"
       printf -- "Remove config: ${remove_config_if_wanted__file}\n"
@@ -356,7 +366,10 @@ check_config_dir_conditions()
   # Check for the existance of the config file
   log "Check that config dir exists as a directory..."
   if [ ! -d "${check_config_dir_conditions__dir}" ]; then
-    printf -- "ERROR: config_dir does not exist at:  ${check_config_dir_conditions__dir}\n"
+    printf -- "$(cat << EOF
+ERROR: config_dir does not exist at:  ${check_config_dir_conditions__dir}
+EOF
+)"
 
     unset check_config_dir_conditions__dir
     return 1
@@ -412,7 +425,10 @@ autoupdate_old_config()
 {
   autoupdate_old_config__dir="$1"
   autoupdate_old_config__config="$2"
-  autoupdate_old_config__base_config="$(basename "${autoupdate_old_config__config}")"
+  autoupdate_old_config__base_config="$(cat << EOF
+$(basename "${autoupdate_old_config__config}")
+EOF
+)"
 
   # Upgrading from git-ssh config version 1
   log "Old config file found at: ${autoupdate_old_config__base_config}"
@@ -420,9 +436,16 @@ autoupdate_old_config()
   check_binary head || return 1
 
   # Get the old ssh_path from the original config file
-  autoupdate_old_config__old="$(head -n 1 < "${autoupdate_old_config__config}" )"
-  autoupdate_old_config__mashup="${autoupdate_old_config__base_config}:${autoupdate_old_config__old}"
-  log "Run artificial call: handle_create_config ${autoupdate_old_config__mashup}"
+  autoupdate_old_config__old="$(head -n 1 \
+    < "${autoupdate_old_config__config}" )"
+  autoupdate_old_config__mashup="$(cat << EOF
+${autoupdate_old_config__base_config}:${autoupdate_old_config__old}
+EOF
+)"
+  log "$(cat << EOF
+Run artificial call: handle_create_config ${autoupdate_old_config__mashup}
+EOF
+)"
   handle_create_config "${autoupdate_old_config__mashup}" || return 1
 
   # Pass a artificial handled flag
@@ -473,11 +496,21 @@ locate_config_file()
     log "Check that ${locate_config_file__config} is a file, not folder"
     if [ ! -d "${locate_config_file__config}" ]; then
       # Read the config if it is the one we want
-      locate_config_file__base_config="$(basename "${locate_config_file__config}")"
-      log "Check for match at (config): ${locate_config_file__base_config} and (key): ${locate_config_file__ssh}.${CONFIG_VERSION}"
-      if [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}" ]; then
-        autoupdate_old_config "${locate_config_file__dir}" "${locate_config_file__config}" || return 1
-      elif [ "${locate_config_file__base_config}" = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
+      locate_config_file__base_config="$(cat << EOF
+$(basename "${locate_config_file__config}")
+EOF
+)"
+      log "$(cat << EOF
+Check for match at (config): ${locate_config_file__base_config} \
+and (key): ${locate_config_file__ssh}.${CONFIG_VERSION}
+EOF
+)"
+      if [ "${locate_config_file__base_config}" \
+        = "${locate_config_file__ssh}" ]; then
+        autoupdate_old_config "${locate_config_file__dir}" \
+          "${locate_config_file__config}" || return 1
+      elif [ "${locate_config_file__base_config}" \
+        = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
         __git_ssh_path="${locate_config_file__config}"
         log "Set __git_ssh_path to: ${__git_ssh_path}"
         break
@@ -504,7 +537,11 @@ check_valid_ssh_path()
   # If no matching key was found
   log "Check for __git_ssh_path: ${__git_ssh_path}"
   if [ -z "${__git_ssh_path}" ]; then
-    printf -- "ERROR: No key found which matches the requested key: ${check_valid_ssh_path__name}\n"
+    printf -- "$(cat << EOF
+ERROR: No key found which matches the requested \
+key: ${check_valid_ssh_path__name}
+EOF
+)"
     return 1
   fi
 
@@ -529,21 +566,25 @@ print_version()
 list_wrapper_help()
 {
   print_version
-  printf -- "options\n"
-  echo
-  printf -- "  --ssh CONFIG               The name identifier of a config file in the \${config_dir}.\n"
-  printf -- "  --ssh-args COMMA-OPTIONS   Comma separated list of options to pass to ssh.\n"
-  printf -- "  --config-dir DIR           The path to the directory where configs are stored.\n"
-  printf -- "  --create-config NAME:PATH  Create a config called NAME with\n"
-  printf -- "                             the path PATH. Does not stop operation following completion.\n"
-  printf -- "  --remove-config NAME       Remove the config specified by NAME.\n"
-  printf -- "                             Does not stop operation following completion.\n"
-  printf -- "  --list-configs             Lists the contents of the \${config_dir}.\n"
-  printf -- "                             Stops operation following completion.\n"
-  printf -- "  --wrapper-debug            Enables debugging statements\n"
-  printf -- "  --wrapper-version          Prints the current wrapper version\n"
-  printf -- "  --wrapper-help             Prints only this help block\n"
-  echo
+  printf -- "$(cat << EOF
+options
+
+  --ssh CONFIG               The name identifier of a config file in the \
+\${config_dir}
+  --ssh-args COMMA-OPTIONS   Comma separated list of options to pass to ssh
+  --config-dir DIR           The path to the directory where configs are stored
+  --create-config NAME:PATH  Create a config called NAME with
+                             the path PATH. Does not stop operation \
+following completion
+  --remove-config NAME       Remove the config specified by NAME
+                             Does not stop operation following completion
+  --list-configs             Lists the contents of the \${config_dir}
+                             Stops operation following completion
+  --wrapper-debug            Enables debugging statements
+  --wrapper-version          Prints the current wrapper version
+  --wrapper-help             Prints only this help block
+EOF
+)\n"
 
   return 0
 }
@@ -684,7 +725,8 @@ main()
             return 1
           fi
 
-          # This is a plain arg and should be handled by one of the options which takes an argument
+          # This is a plain arg and should be handled by one of
+          # the options which takes an argument
           log "Has option with argument: ${long_option} ${optind_expanded}"
           case "${long_option}" in
             ssh)
@@ -694,17 +736,20 @@ main()
               config_dir="${optind_expanded}"
               ;;
             remove-config)
-              handle_remove_config "${config_dir}" "${optind_expanded}" || return 1
+              handle_remove_config "${config_dir}" \
+                "${optind_expanded}" || return 1
               ;;
             ssh-args)
-              ssh_args="$(handle_ssh_args_option "${optind_expanded}")" || return 1
+              ssh_args="$(handle_ssh_args_option \
+                "${optind_expanded}")" || return 1
               ;;
             create-config)
               handle_create_config "${optind_expanded}" || return 1
               ;;
           esac
         else
-          # This is a plain arg and should be handled by one of the options which takes an argument
+          # This is a plain arg and should be handled by one of
+          # the options which takes an argument
           log "Has option no argument: ${long_option}"
           case "${long_option}" in
             wrapper-help)
@@ -772,10 +817,12 @@ main()
   log "After loop OPTIND count: ${OPTIND}"
 
   # Remove the config if requested
-  remove_config_if_wanted "${handled_by_remove}" "${config_dir}" || return 1
+  remove_config_if_wanted "${handled_by_remove}" \
+    "${config_dir}" || return 1
 
   # Create the config if requested
-  create_config_if_wanted "${handled_by_create}" "${config_dir}" || return 1
+  create_config_if_wanted "${handled_by_create}" \
+    "${config_dir}" || return 1
 
   if [ "${should_list_configs}" -ne 0 ]; then
     list_configs "${config_dir}" || return 1
