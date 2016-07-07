@@ -159,8 +159,8 @@ handle_create_config()
   handle_create_config__split="$(printf -- "${handle_create_config__args}" \
     | tr ":" "\n")"
   handle_create_config__i=0
-  # shellcheck disable=SC2154
   for arg in ${handle_create_config__split}; do
+    log "Create argument: ${arg}"
     if [ ${handle_create_config__i} -ge 2 ]; then
       printf -- "Too many config arguments.\n"
       return 1
