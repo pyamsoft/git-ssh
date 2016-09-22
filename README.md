@@ -67,6 +67,16 @@ git may pose a security risk in unforseen situations. This project does not
 guarantee the safety or stability of the system in the event that the  
 environment is overrideen to use git-ssh for all git related calls
 
+## Nested Quotes
+
+The script runs an eval call on all of the arguments passed in because the author  
+is bad and does not know how to shell script properly. Unfortunately, until he  
+can learn properly, it is what it is. If you are, for example, commiting from the  
+command line and your commit message includes nested quotations, you will need to  
+include not one, not two, but three backslashes to escape your nested quotes.  
+
+Sorry.
+
 ## Questions
 
 Questions or issues should be either posted in the issue section of this  
