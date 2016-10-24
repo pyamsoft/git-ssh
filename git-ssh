@@ -84,7 +84,7 @@ check_binary()
   check_binary__bin="$1"
   check_binary__old_ifs="${IFS}"
   if [ -z "${check_binary__bin}" ]; then
-    printf -- "Must specify a path to a binary"
+    printf -- "Must specify a path to a binary\n"
     return 1
   fi
 
@@ -105,7 +105,7 @@ check_binary()
     unset check_binary__result
   done
 
-  printf -- "Binary '${check_binary__bin}' not found in \$PATH"
+  printf -- "Binary '%s' not found in \$PATH\n" "${check_binary__bin}"
 
   unset check_binary__result
   unset check_binary__bin
@@ -127,7 +127,7 @@ handle_ssh_args_option()
   split_ssh_args=
 
   check_binary tr || return 1
-  split_ssh_args="$(printf -- "${ssh_args_comma_separated}" | tr "," "\n")"
+  split_ssh_args="$(printf -- "%s" "${ssh_args_comma_separated}" | tr "," "\n")"
   for arg in ${split_ssh_args}; do
     if [ -z "${ssh_args_correct}" ]; then
       ssh_args_correct="${arg}"
@@ -139,7 +139,7 @@ handle_ssh_args_option()
 
   # Echo output
   log "ssh_args set to '${ssh_args_correct}'"
-  printf -- "${ssh_args_correct}"
+  printf -- "%s" "${ssh_args_correct}"
 
   unset ssh_args_comma_separated
   unset split_ssh_args
@@ -156,7 +156,7 @@ handle_create_config()
   handle_create_config__split=""
 
   check_binary tr || return 1
-  handle_create_config__split="$(printf -- "${handle_create_config__args}" \
+  handle_create_config__split="$(printf -- "%s" "${handle_create_config__args}" \
     | tr ":" "\n")"
   handle_create_config__i=0
   for arg in ${handle_create_config__split}; do
@@ -204,7 +204,7 @@ EOF
 
   log "Check for file exists: ${handle_remove_config__check}"
   if [ ! -f "${handle_remove_config__check}" ]; then
-    printf -- "Config does not exist, cannot remove."
+    printf -- "Config does not exist, cannot remove.\n"
 
     unset handle_remove_config__dir
     unset handle_remove_config__file
@@ -242,7 +242,7 @@ ${create_config_if_wanted__dir}/${__create_config_name}.${CONFIG_VERSION}
 EOF
 )"
 
-      printf -- "Create new config: ${__create_config_name}\n"
+      printf -- "Create new config: %s\n" "${__create_config_name}"
 
       # Create the file
       touch "${create_config_if_wanted__file}"
@@ -251,7 +251,7 @@ EOF
       printf -- "Host *\n" > "${create_config_if_wanted__file}"
 
       # Set the requested identify file found at ${create_config_path}
-      printf -- "    IdentityFile ${__create_config_target}\n" \
+      printf -- "    IdentityFile %s\n" "${__create_config_target}" \
         >> "${create_config_if_wanted__file}"
 
       # Only use identities specified in the config file
@@ -261,8 +261,8 @@ EOF
       unset create_config_if_wanted__file
     else
       printf -- "ERROR: Cannot create new config.\n"
-      printf -- "    name: ${__create_config_name}\n"
-      printf -- "    target: ${__create_config_target}\n"
+      printf -- "    name: %s\n" "${__create_config_name}"
+      printf -- "    target: %s\n" "${__create_config_target}"
 
       unset create_config_if_wanted__handled
       unset create_config_if_wanted__dir
@@ -296,7 +296,7 @@ EOF
 )"
 
       rm -f "${remove_config_if_wanted__file}"
-      printf -- "Remove config: ${remove_config_if_wanted__file}\n"
+      printf -- "Remove config: %s\n" "${remove_config_if_wanted__file}"
 
       unset remove_config_if_wanted__file
     else
@@ -325,21 +325,21 @@ list_configs()
   check_binary wc || return 1
   check_binary head || return 1
 
-  printf -- "Config directory: ${list_configs__config_dir}\n"
+  printf -- "Config directory: %s\n" "${list_configs__config_dir}"
 
   list_configs__count=0
   for list_configs__file in "${list_configs__config_dir}"/*; do
     log "Potential config at: ${list_configs__file}"
     if [ -f "${list_configs__file}" ]; then
       list_configs__count=$((list_configs__count + 1))
-      printf -- "[$(basename "${list_configs__file}")]\n"
-      printf -- "Path: $(cat "${list_configs__file}" )\n"
+      printf -- "[%s]\n" "$(basename "${list_configs__file}")"
+      printf -- "Path: %s\n" "$(cat "${list_configs__file}" )"
       echo
     fi
   done
 
   echo
-  printf -- "Number of configs: ${list_configs__count}\n"
+  printf -- "Number of configs: %d\n" "${list_configs__count}"
 
   unset list_configs__config_dir
   unset list_configs__count
@@ -366,7 +366,7 @@ check_config_dir_conditions()
   # Check for the existance of the config file
   log "Check that config dir exists as a directory..."
   if [ ! -d "${check_config_dir_conditions__dir}" ]; then
-    printf -- "$(cat << EOF
+    printf -- "%s\n" "$(cat << EOF
 ERROR: config_dir does not exist at:  ${check_config_dir_conditions__dir}
 EOF
 )"
@@ -450,7 +450,7 @@ EOF
 
   # Pass a artificial handled flag
   create_config_if_wanted 1 "${autoupdate_old_config__dir}"
-  if [ $? -ne 0 ]; then
+  if "$?" -ne 0 ; then
     log "Failed to auto generate config for version: ${CONFIG_VERSION}"
 
     unset autoupdate_old_config__config
@@ -537,7 +537,7 @@ check_valid_ssh_path()
   # If no matching key was found
   log "Check for __git_ssh_path: ${__git_ssh_path}"
   if [ -z "${__git_ssh_path}" ]; then
-    printf -- "$(cat << EOF
+    printf -- "%s\n" "$(cat << EOF
 ERROR: No key found which matches the requested \
 key: ${check_valid_ssh_path__name}
 EOF
@@ -554,7 +554,7 @@ EOF
 #
 print_version()
 {
-  printf -- "git-ssh [${VERSION}]\n"
+  printf -- "git-ssh [%s]\n" "${VERSION}"
   echo
 
   return 0
@@ -566,7 +566,7 @@ print_version()
 list_wrapper_help()
 {
   print_version
-  printf -- "$(cat << EOF
+  printf -- "%s\n" "$(cat << EOF
 options
 
   --ssh CONFIG               The name identifier of a config file in the \
@@ -584,7 +584,7 @@ following completion
   --wrapper-version          Prints the current wrapper version
   --wrapper-help             Prints only this help block
 EOF
-)\n"
+)"
 
   return 0
 }
@@ -629,7 +629,7 @@ main()
   # We need git, cat, env, and ssh
   # In the case of git, we check that the path resolves
   if [ ! -e "${GIT_BINARY}" ]; then
-    printf -- "Git must be installed and located at: ${GIT_BINARY}"
+    printf -- "Git must be installed and located at: %s\n" "${GIT_BINARY}"
     return 1
   fi
 
@@ -654,7 +654,7 @@ main()
         log "OPTION: ${option} ${OPTARG}"
         # Set only on long option with arg
         if [ -n "${long_option}" ]; then
-          printf -- "Long option --${long_option} expects argument\n"
+          printf -- "Long option --%s expects argument\n" "${long_option}"
           return 1
         fi
 
@@ -721,7 +721,7 @@ main()
         # Call should be processed by wrapper
         if [ "${long_option_has_arg}" -eq 1 ]; then
           if [ -z "${optind_expanded}" ]; then
-            printf -- "Long option --${long_option} expects argument\n"
+            printf -- "Long option --%s expects argument\n" "${long_option}"
             return 1
           fi
 
