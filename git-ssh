@@ -449,8 +449,7 @@ EOF
   handle_create_config "${autoupdate_old_config__mashup}" || return 1
 
   # Pass a artificial handled flag
-  create_config_if_wanted 1 "${autoupdate_old_config__dir}"
-  if "$?" -ne 0 ; then
+  create_config_if_wanted 1 "${autoupdate_old_config__dir}" || {
     log "Failed to auto generate config for version: ${CONFIG_VERSION}"
 
     unset autoupdate_old_config__config
@@ -459,12 +458,12 @@ EOF
     unset autoupdate_old_config__old
     unset autoupdate_old_config__mashup
     return 1
-  else
-    log "Auto generate config for version: ${CONFIG_VERSION}"
-    log "Remove old config ${autoupdate_old_config__config}"
-    check_binary rm || return 1
-    rm -f "${autoupdate_old_config__config}"
-  fi
+  }
+
+  log "Auto generate config for version: ${CONFIG_VERSION}"
+  log "Remove old config ${autoupdate_old_config__config}"
+  check_binary rm || return 1
+  rm -f "${autoupdate_old_config__config}"
 
   # Set the __git_ssh_path
   __git_ssh_path="${autoupdate_old_config__config}.${CONFIG_VERSION}"
