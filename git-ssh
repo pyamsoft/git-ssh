@@ -43,7 +43,7 @@
 export LC_ALL=C
 
 # git-ssh
-readonly VERSION="1.0.8"
+readonly VERSION="1.0.9"
 
 # config file version
 readonly CONFIG_VERSION="2"
