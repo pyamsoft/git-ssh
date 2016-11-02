@@ -51,7 +51,7 @@ readonly CONFIG_VERSION="2"
 # Location of the actual git binary
 readonly GIT_BINARY="/usr/bin/git"
 
-readonly GIT_DELIMETER='#'
+readonly GIT_DELIMETER='`'
 
 # List of plain arguments to pass to git
 __git_args=""
