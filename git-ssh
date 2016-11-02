@@ -873,8 +873,9 @@ main()
   # Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
   # and single quotes to be passed through
   log "Call requests wrapper options, call wrapper git"
-  log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${ssh_args}'"
-  export GIT_SSH_COMMAND="ssh -F \"${__git_ssh_path}\" ${ssh_args}"
+  log "GIT_SSH_COMMAND='ssh -F '${__git_ssh_path}' ${ssh_args}'"
+  GIT_SSH_COMMAND="ssh -F '${__git_ssh_path}' ${ssh_args}"
+  export GIT_SSH_COMMAND
   run_git
 }
 
