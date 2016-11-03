@@ -908,7 +908,7 @@ main()
 export LC_ALL=C
 
 # git-ssh
-readonly VERSION="1.1.1"
+readonly VERSION="1.2.0"
 
 # config file version
 readonly CONFIG_VERSION="2"
