@@ -39,33 +39,42 @@
 # Fail if pipe fails
 # set -o pipefail
 
-# Export the LC as the default C so that we do not run into locale based quirks
-export LC_ALL=C
+##
+# Encode items into an array
+array_encode()
+{
+  sed 's/%/%25/g' | sed -e :a -e '$!N; s/\n/%0A/; ta'
+}
 
-# git-ssh
-readonly VERSION="1.1.1"
+##
+# Inverse function of array_encode.
+#
+array_decode() {
+  # shellcheck disable=SC1004
+  sed -e 's/%0[aA]/\
+/g' -e 's/%25/%/g'
+}
 
-# config file version
-readonly CONFIG_VERSION="2"
+##
+# Append items to an array
+#
+# Pass your array as the first argument:
+#   array_append "$A" 'next' 'another'
+array_append () {
+  printf -- "%s\n" "$1" && shift &&
+  for i in "$@" ; do
+    printf -- "%s\n" "$i" | array_encode
+  done
+}
 
-# Location of the actual git binary
-readonly GIT_BINARY="/usr/bin/git"
-
-# List of plain arguments to pass to git
-__git_args=""
-
-# The ssh key git should use
-__git_ssh_path=""
-
-# No argument options
-__wrapper_debug=0
-
-# Parameters for creating a config
-__create_config_name=""
-__create_config_target=""
-
-# Parameters for removing a config
-__remove_config_name=""
+##
+# Creates an array with arbitrary amount of elements
+array_create()
+{
+  for i in "$@"; do
+    printf -- "%s\n" "$i" | array_encode
+  done
+}
 
 log()
 {
@@ -596,12 +605,8 @@ append_git_argument()
 {
   append_git_argument__arg="$1"
 
-  log "Sanitize raw git argument: \"${append_git_argument__arg}\""
-  if [ -z "${__git_args}" ]; then
-    __git_args="\"${append_git_argument__arg}\""
-  else
-    __git_args="${__git_args} \"${append_git_argument__arg}\""
-  fi
+  log "Append git argument: '${append_git_argument__arg}'"
+  __git_args="$(array_append "${__git_args}" "${append_git_argument__arg}")"
 
   unset append_git_argument__arg
   return 0
@@ -609,11 +614,37 @@ append_git_argument()
 
 ##
 # Parse git_args into parameters and then run git
+# Arguments are not passed to this function, but rather are evaluated within
+# shellcheck disable=SC2120
 run_git()
 {
-  log "Convert git args: ${__git_args} to positional parameters using eval"
-  eval "set -- ${__git_args}"
-  exec ${GIT_BINARY} "$@"
+  log "Convert git args: ${__git_args} to positional parameters"
+
+  # Clear options
+  log "Clear options"
+  set --
+
+  # Split the IFS by newlines
+  old_ifs="${IFS}"
+  IFS="
+"
+
+  for element in ${__git_args}; do
+    log "Args current: $*"
+    elem="$(printf -- "%s" "${element}" | array_decode)"
+    if [ -n "${elem}" ]; then
+      log "Add arg: ${elem}"
+      set -- "$@" "${elem}"
+    fi
+    unset elem
+  done
+
+  # Reset IFS
+  IFS="${old_ifs}"
+
+  log "Git binary: ${GIT_BINARY}"
+  log "Parameters: $*"
+  exec "${GIT_BINARY}" "$@"
 }
 
 ##
@@ -841,6 +872,8 @@ main()
   if [ "${handled_by_wrapper}" -eq 0 ]; then
     # Just run git
     log "Call does not request wrapper options, call git normally"
+
+    # shellcheck disable=SC2119
     run_git
     return 0
   fi
@@ -865,9 +898,39 @@ main()
   log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${ssh_args}'"
   GIT_SSH_COMMAND="ssh -F '${__git_ssh_path}' ${ssh_args}"
   export GIT_SSH_COMMAND
+
+  # shellcheck disable=SC2119
   run_git
   return 0
 }
+
+# Export the LC as the default C so that we do not run into locale based quirks
+export LC_ALL=C
+
+# git-ssh
+readonly VERSION="1.1.1"
+
+# config file version
+readonly CONFIG_VERSION="2"
+
+# Location of the actual git binary
+readonly GIT_BINARY="/usr/bin/git"
+
+# List of plain arguments to pass to git
+__git_args=$(array_create "")
+
+# The ssh key git should use
+__git_ssh_path=""
+
+# No argument options
+__wrapper_debug=0
+
+# Parameters for creating a config
+__create_config_name=""
+__create_config_target=""
+
+# Parameters for removing a config
+__remove_config_name=""
 
 main "$@" || exit 1
 # vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:
