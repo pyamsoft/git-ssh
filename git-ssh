@@ -43,7 +43,7 @@
 export LC_ALL=C
 
 # git-ssh
-readonly VERSION="1.1.0"
+readonly VERSION="1.1.1"
 
 # config file version
 readonly CONFIG_VERSION="2"
@@ -608,6 +608,15 @@ append_git_argument()
 }
 
 ##
+# Parse git_args into parameters and then run git
+run_git()
+{
+  log "Convert git args: ${__git_args} to positional parameters using eval"
+  eval "set -- ${__git_args}"
+  exec ${GIT_BINARY} "$@"
+}
+
+##
 # Main function
 #
 # $@ command line arguments
@@ -832,8 +841,8 @@ main()
   if [ "${handled_by_wrapper}" -eq 0 ]; then
     # Just run git
     log "Call does not request wrapper options, call git normally"
-    log "Do: \"${GIT_BINARY}\" ${__git_args}"
-    eval "exec ${GIT_BINARY} ${__git_args}"
+    run_git
+    return 0
   fi
 
   # Make sure everything is set
@@ -854,11 +863,10 @@ main()
   # and single quotes to be passed through
   log "Call requests wrapper options, call wrapper git"
   log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${ssh_args}'"
-  log "GIT: ${GIT_BINARY}"
-  log "ARGS: ${__git_args}"
-  export GIT_SSH_COMMAND="ssh -F \"${__git_ssh_path}\" ${ssh_args}"
-
-  eval "exec ${GIT_BINARY} ${__git_args}"
+  GIT_SSH_COMMAND="ssh -F '${__git_ssh_path}' ${ssh_args}"
+  export GIT_SSH_COMMAND
+  run_git
+  return 0
 }
 
 main "$@" || exit 1
