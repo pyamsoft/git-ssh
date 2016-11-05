@@ -905,7 +905,13 @@ main()
 }
 
 # Export the LC as the default C so that we do not run into locale based quirks
-export LC_ALL=C
+LC_ALL=C
+export LC_ALL
+
+# Set a sanitized PATH
+# Do not include /usr/local
+PATH="/usr/sbin:/usr/bin:/sbin:/bin"
+export PATH
 
 # git-ssh
 readonly VERSION="1.2.0"
