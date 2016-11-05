@@ -914,7 +914,7 @@ PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 export PATH
 
 # git-ssh
-readonly VERSION="1.2.0"
+readonly VERSION="1.2.1"
 
 # config file version
 readonly CONFIG_VERSION="2"
