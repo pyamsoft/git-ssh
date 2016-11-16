@@ -91,36 +91,22 @@ log()
 check_binary()
 {
   check_binary__bin="$1"
-  check_binary__old_ifs="${IFS}"
   if [ -z "${check_binary__bin}" ]; then
-    printf -- "Must specify a path to a binary\n"
+    # Really hope we at least have printf
+    printf -- "Must specify a path to a binary"
+    unset check_binary__bin
     return 1
   fi
 
-  IFS=":"
-  for check_binary__path in ${PATH}; do
-    check_binary__result=
-    check_binary__result="${check_binary__path}/${check_binary__bin}"
-    if [ -e "${check_binary__result}" ]; then
-      IFS="${check_binary__old_ifs}"
-
-      unset check_binary__result
-      unset check_binary__bin
-      unset check_binary__old_ifs
-      unset check_binary__path
-      return 0
-    fi
-
-    unset check_binary__result
-  done
-
-  printf -- "Binary '%s' not found in \$PATH\n" "${check_binary__bin}"
-
-  unset check_binary__result
-  unset check_binary__bin
-  unset check_binary__old_ifs
-  unset check_binary__path
-  return 1
+  if command -v "${check_binary__bin}" > /dev/null 2>&1; then
+    unset check_binary__bin
+    return 0
+  else
+    # Really hope we at least have printf
+    printf -- "Binary '%s' not found in \$PATH" "${check_binary__bin}"
+    unset check_binary__bin
+    return 1
+  fi
 }
 
 ##
