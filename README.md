@@ -67,6 +67,19 @@ git may pose a security risk in unforseen situations. This project does not
 guarantee the safety or stability of the system in the event that the  
 environment is overrideen to use git-ssh for all git related calls
 
+If you do not want to replace the normal resolution for a call to `git` you  
+can instead call git with the following:  
+```
+For example, say you wanted to do:
+
+ $ git push -u origin master
+
+You can call the command as follows:
+
+ $ git ssh --ssh github push -u origin master
+
+```
+
 ## Nested Quotes
 
 The script runs an eval call on all of the arguments passed in because the author  
