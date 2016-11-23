@@ -361,13 +361,19 @@ check_config_dir_conditions()
   # Check for the existance of the config file
   log "Check that config dir exists as a directory..."
   if [ ! -d "${check_config_dir_conditions__dir}" ]; then
-    printf -- "%s\n" "$(cat << EOF
-ERROR: config_dir does not exist at:  ${check_config_dir_conditions__dir}
+    check_binary mkdir || return 1
+
+    # If the directory does not exist, make it
+    printf -- "Creating config directory at: %s\n" \
+      "${check_config_dir_conditions__dir}"
+    mkdir -p "${check_config_dir_conditions__dir}" || {
+      printf -- "%s\n" "$(cat << EOF
+ERROR: config_dir could not be created at:  ${check_config_dir_conditions__dir}
 EOF
 )"
-
-    unset check_config_dir_conditions__dir
-    return 1
+      unset check_config_dir_conditions__dir
+      return 1
+    }
   fi
 
   unset check_config_dir_conditions__dir
