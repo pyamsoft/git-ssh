@@ -78,9 +78,18 @@ array_create()
 
 log()
 {
-  if [ "${__wrapper_debug}" -ne 0 ]; then
-    printf -- "%s\n" "$1"
+  if [ "$#" -eq 0 ]; then
+    return 1
   fi
+
+  if [ "${__wrapper_debug}" -ne 0 ]; then
+    log__fmt="$1"
+    shift
+    printf -- "${log__fmt}\n" "$@"
+    unset log__fmt
+  fi
+
+  return 0
 }
 
 ##
@@ -133,7 +142,7 @@ handle_ssh_args_option()
   done
 
   # Echo output
-  log "ssh_args set to '${ssh_args_correct}'"
+  log "ssh_args set to '%s'" "${ssh_args_correct}"
   printf -- "%s" "${ssh_args_correct}"
 
   unset ssh_args_comma_separated
@@ -151,20 +160,20 @@ handle_create_config()
   handle_create_config__split=""
 
   check_binary tr || return 1
-  handle_create_config__split="$(printf -- "%s" "${handle_create_config__args}" \
-    | tr ":" "\n")"
+  handle_create_config__split="$(printf -- "%s" \
+    "${handle_create_config__args}" | tr ":" "\n")"
   handle_create_config__i=0
   for arg in ${handle_create_config__split}; do
-    log "Create argument: ${arg}"
+    log "Create argument: %s" "${arg}"
     if [ ${handle_create_config__i} -ge 2 ]; then
       printf -- "Too many config arguments.\n"
       return 1
     elif [ ${handle_create_config__i} -eq 0 ]; then
       __create_config_name="${arg}"
-      log "Set Config name: ${__create_config_name}"
+      log "Set Config name: %s" "${__create_config_name}"
     elif [ ${handle_create_config__i} -eq 1 ]; then
       __create_config_target="${arg}"
-      log "Set Config target: ${__create_config_target}"
+      log "Set Config target: %s" "${__create_config_target}"
     fi
     handle_create_config__i=$((handle_create_config__i + 1))
   done
@@ -175,7 +184,8 @@ handle_create_config()
     return 1
   fi
 
-  log "Config name: ${__create_config_name}, target: ${__create_config_target}"
+  log "Config name: %s, target: %s" "${__create_config_name}" \
+    "${__create_config_target}"
 
   unset handle_create_config__i
   unset handle_create_config__args
@@ -197,7 +207,7 @@ ${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}
 EOF
 )"
 
-  log "Check for file exists: ${handle_remove_config__check}"
+  log "Check for file exists: %s" "${handle_remove_config__check}"
   if [ ! -f "${handle_remove_config__check}" ]; then
     printf -- "Config does not exist, cannot remove.\n"
 
@@ -227,7 +237,8 @@ create_config_if_wanted()
   create_config_if_wanted__dir="$2"
 
   if [ "${create_config_if_wanted__handled}" -ne 0 ]; then
-    log "Create requested at ${__create_config_name}, ${__create_config_target}"
+    log "Create requested at %s, %s" "${__create_config_name}" \
+      "${__create_config_target}"
     if [ ! -z "${__create_config_name}" ] \
       && [ ! -z "${__create_config_target}" ]; then
       check_config_dir_conditions "${create_config_if_wanted__dir}" \
@@ -324,7 +335,7 @@ list_configs()
 
   list_configs__count=0
   for list_configs__file in "${list_configs__config_dir}"/*; do
-    log "Potential config at: ${list_configs__file}"
+    log "Potential config at: %s" "${list_configs__file}"
     if [ -f "${list_configs__file}" ]; then
       list_configs__count=$((list_configs__count + 1))
       printf -- "[%s]\n" "$(basename "${list_configs__file}")"
@@ -432,7 +443,7 @@ EOF
 )"
 
   # Upgrading from git-ssh config version 1
-  log "Old config file found at: ${autoupdate_old_config__base_config}"
+  log "Old config file found at: %s" "${autoupdate_old_config__base_config}"
   log "Auto upgrade to new format"
   check_binary head || return 1
 
@@ -443,15 +454,13 @@ EOF
 ${autoupdate_old_config__base_config}:${autoupdate_old_config__old}
 EOF
 )"
-  log "$(cat << EOF
-Run artificial call: handle_create_config ${autoupdate_old_config__mashup}
-EOF
-)"
+  log "Run artificial call: handle_create_config %s" \
+    "${autoupdate_old_config__mashup}"
   handle_create_config "${autoupdate_old_config__mashup}" || return 1
 
   # Pass a artificial handled flag
   create_config_if_wanted 1 "${autoupdate_old_config__dir}" || {
-    log "Failed to auto generate config for version: ${CONFIG_VERSION}"
+    log "Failed to auto generate config for version: %s" "${CONFIG_VERSION}"
 
     unset autoupdate_old_config__config
     unset autoupdate_old_config__dir
@@ -461,14 +470,14 @@ EOF
     return 1
   }
 
-  log "Auto generate config for version: ${CONFIG_VERSION}"
-  log "Remove old config ${autoupdate_old_config__config}"
+  log "Auto generate config for version: %s" "${CONFIG_VERSION}"
+  log "Remove old config %s" "${autoupdate_old_config__config}"
   check_binary rm || return 1
   rm -f "${autoupdate_old_config__config}"
 
   # Set the __git_ssh_path
   __git_ssh_path="${autoupdate_old_config__config}.${CONFIG_VERSION}"
-  log "Set __git_ssh_path to: ${__git_ssh_path}"
+  log "Set __git_ssh_path to: %s" "${__git_ssh_path}"
 
   unset autoupdate_old_config__config
   unset autoupdate_old_config__dir
@@ -489,22 +498,19 @@ locate_config_file()
   locate_config_file__ssh="$2"
 
   # Path expanstion via shell
-  log "Find configs in ${locate_config_file__dir}"
+  log "Find configs in %s" "${locate_config_file__dir}"
   for locate_config_file__config in "${locate_config_file__dir}"/*; do
 
     # Make sure we've found a config file, not folder
-    log "Check that ${locate_config_file__config} is a file, not folder"
+    log "Check that %s is a file, not folder" "${locate_config_file__config}"
     if [ ! -d "${locate_config_file__config}" ]; then
       # Read the config if it is the one we want
       locate_config_file__base_config="$(cat << EOF
 $(basename "${locate_config_file__config}")
 EOF
 )"
-      log "$(cat << EOF
-Check for match at (config): ${locate_config_file__base_config} \
-and (key): ${locate_config_file__ssh}.${CONFIG_VERSION}
-EOF
-)"
+      log "Check for match at (config): %s and (key): %s" \
+        "${locate_config_file__base_config}" "${locate_config_file__ssh}.${CONFIG_VERSION}"
       if [ "${locate_config_file__base_config}" \
         = "${locate_config_file__ssh}" ]; then
         autoupdate_old_config "${locate_config_file__dir}" \
@@ -512,7 +518,7 @@ EOF
       elif [ "${locate_config_file__base_config}" \
         = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
         __git_ssh_path="${locate_config_file__config}"
-        log "Set __git_ssh_path to: ${__git_ssh_path}"
+        log "Set __git_ssh_path to: %s" "${__git_ssh_path}"
         break
       fi
       unset locate_config_file__base_config
@@ -535,7 +541,7 @@ check_valid_ssh_path()
   check_valid_ssh_path__name="$1"
 
   # If no matching key was found
-  log "Check for __git_ssh_path: ${__git_ssh_path}"
+  log "Check for __git_ssh_path: %s" "${__git_ssh_path}"
   if [ -z "${__git_ssh_path}" ]; then
     printf -- "%s\n" "$(cat << EOF
 ERROR: No key found which matches the requested \
@@ -597,7 +603,7 @@ append_git_argument()
 {
   append_git_argument__arg="$1"
 
-  log "Append git argument: '${append_git_argument__arg}'"
+  log "Append git argument: '%s'" "${append_git_argument__arg}"
   __git_args="$(array_append "${__git_args}" "${append_git_argument__arg}")"
 
   unset append_git_argument__arg
@@ -610,7 +616,7 @@ append_git_argument()
 # shellcheck disable=SC2120
 run_git()
 {
-  log "Convert git args: ${__git_args} to positional parameters"
+  log "Convert git args: %s to positional parameters" "${__git_args}"
 
   # Clear options
   log "Clear options"
@@ -622,10 +628,10 @@ run_git()
 "
 
   for element in ${__git_args}; do
-    log "Args current: $*"
+    log "Args current: %s" "$*"
     elem="$(printf -- "%s" "${element}" | array_decode)"
     if [ -n "${elem}" ]; then
-      log "Add arg: ${elem}"
+      log "Add arg: %s" "${elem}"
       set -- "$@" "${elem}"
     fi
     unset elem
@@ -634,8 +640,8 @@ run_git()
   # Reset IFS
   IFS="${old_ifs}"
 
-  log "Git binary: ${GIT_BINARY}"
-  log "Parameters: $*"
+  log "Git binary: %s" "${GIT_BINARY}"
+  log "Parameters: %s" "$*"
   exec "${GIT_BINARY}" "$@"
 }
 
@@ -680,9 +686,9 @@ main()
     optind_expanded=
     eval optind_expanded="\$${OPTIND}"
     while [ -n "${optind_expanded}" ]; do
-      log "CURRENT: $1"
+      log "CURRENT: %s" "$1"
       while getopts ":-:" option; do
-        log "OPTION: ${option} ${OPTARG}"
+        log "OPTION: %s %s" "${option}" "${OPTARG}"
         # Set only on long option with arg
         if [ -n "${long_option}" ]; then
           printf -- "Long option --%s expects argument\n" "${long_option}"
@@ -692,7 +698,7 @@ main()
         long_option=""
         case "${option}" in
           -)
-            log "parse long option: -${option}${OPTARG}"
+            log "parse long option: -%s%s" "${option}" "${OPTARG}"
             case "${OPTARG}" in
               list-configs)
                 handled_by_wrapper=1
@@ -747,7 +753,7 @@ main()
         optind_expanded=""
       fi
 
-      log "Continuing: ${long_option} | ${optind_expanded}"
+      log "Continuing: %s | %s" "${long_option}" "${optind_expanded}"
       if [ -n "${long_option}" ]; then
         # Call should be processed by wrapper
         if [ "${long_option_has_arg}" -eq 1 ]; then
@@ -758,7 +764,8 @@ main()
 
           # This is a plain arg and should be handled by one of
           # the options which takes an argument
-          log "Has option with argument: ${long_option} ${optind_expanded}"
+          log "Has option with argument: %s %s" "${long_option}" \
+            "${optind_expanded}"
           case "${long_option}" in
             ssh)
               ssh_key="${optind_expanded}"
@@ -781,7 +788,7 @@ main()
         else
           # This is a plain arg and should be handled by one of
           # the options which takes an argument
-          log "Has option no argument: ${long_option}"
+          log "Has option no argument: %s" "${long_option}"
           case "${long_option}" in
             wrapper-help)
               list_wrapper_help || return 1
@@ -823,18 +830,18 @@ main()
       long_option_has_arg=0
 
       option_shift_count="${OPTIND}"
-      log "Option count: $#"
-      log "If possible, shift by: ${option_shift_count}"
+      log "Option count: %s" "$#"
+      log "If possible, shift by: %s" "${option_shift_count}"
       while [ "$#" -lt "${option_shift_count}" ]; do
         log "Shift count is too large, decrement"
         option_shift_count=$((option_shift_count - 1))
-        log "If possible, shift by: ${option_shift_count}"
+        log "If possible, shift by: %s" "${option_shift_count}"
       done
 
       # Need this here incase the loop doesn't run
       if [ "$#" -ge "${option_shift_count}" ]; then
         # Shift the options
-        log "Shift by: ${option_shift_count}"
+        log "Shift by: %s" "${option_shift_count}"
         shift ${option_shift_count}
         OPTIND=1
       fi
@@ -844,8 +851,8 @@ main()
     done
   fi
 
-  log "After loop argument count: $#"
-  log "After loop OPTIND count: ${OPTIND}"
+  log "After loop argument count: %s" "$#"
+  log "After loop OPTIND count: %s" "${OPTIND}"
 
   # Remove the config if requested
   remove_config_if_wanted "${handled_by_remove}" \
@@ -887,7 +894,7 @@ main()
   # Escape the GIT_SSH_COMMAND with double quotes to allow paths with spaces
   # and single quotes to be passed through
   log "Call requests wrapper options, call wrapper git"
-  log "GIT_SSH_COMMAND='ssh -F \"${__git_ssh_path}\" ${ssh_args}'"
+  log "GIT_SSH_COMMAND='ssh -F \"%s\" %s'" "${__git_ssh_path}" "${ssh_args}"
   GIT_SSH_COMMAND="ssh -F '${__git_ssh_path}' ${ssh_args}"
   export GIT_SSH_COMMAND
 
