@@ -85,6 +85,7 @@ log()
   if [ "${__wrapper_debug}" -ne 0 ]; then
     log__fmt="$1"
     shift
+    # shellcheck disable=SC2059
     printf -- "${log__fmt}\n" "$@"
     unset log__fmt
   fi
