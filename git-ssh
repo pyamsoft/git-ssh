@@ -257,13 +257,15 @@ EOF
       # Capture all hosts by default
       printf -- "Host *\n" > "${create_config_if_wanted__file}"
 
-      # Set the requested identify file found at ${create_config_path}
-      printf -- "    IdentityFile %s\n" "${__create_config_target}" \
-        >> "${create_config_if_wanted__file}"
+      {
+        printf -- "    IdentityFile %s\n" "${__create_config_target}"
 
-      # Only use identities specified in the config file
-      printf -- "    IdentitiesOnly yes\n" \
-        >> "${create_config_if_wanted__file}"
+        # Only use identities specified in the config file
+        printf -- "    IdentitiesOnly yes\n"
+
+        # Leave this option commented out by default
+        printf -- "    # AddKeysToAgent yes\n"
+      } >> "${create_config_if_wanted__file}"
 
       unset create_config_if_wanted__file
     else
