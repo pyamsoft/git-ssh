@@ -668,7 +668,7 @@ main()
 
   # We need git, cat, env, and ssh
   # In the case of git, we check that the path resolves
-  if [ ! -e "${GIT_BINARY}" ]; then
+  if [ ! -x "${GIT_BINARY}" ]; then
     printf -- "Git must be installed and located at: %s\n" "${GIT_BINARY}"
     return 1
   fi
