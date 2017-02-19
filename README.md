@@ -80,16 +80,6 @@ You can call the command as follows:
 
 ```
 
-## Nested Quotes
-
-The script runs an eval call on all of the arguments passed in because the author  
-is bad and does not know how to shell script properly. Unfortunately, until he  
-can learn properly, it is what it is. If you are, for example, commiting from the  
-command line and your commit message includes nested quotations, you will need to  
-include not one, not two, but three backslashes to escape your nested quotes.  
-
-Sorry.
-
 ## Questions
 
 Questions or issues should be either posted in the issue section of this  
