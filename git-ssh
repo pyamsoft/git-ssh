@@ -898,7 +898,11 @@ main()
   # and single quotes to be passed through
   log "Call requests wrapper options, call wrapper git"
   log "GIT_SSH_COMMAND='ssh -F \"%s\" %s'" "${__git_ssh_path}" "${ssh_args}"
+
+  # shellcheck disable=SC2089
   GIT_SSH_COMMAND="ssh -F '${__git_ssh_path}' ${ssh_args}"
+
+  # shellcheck disable=SC2090
   export GIT_SSH_COMMAND
 
   # shellcheck disable=SC2119
