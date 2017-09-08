@@ -103,7 +103,7 @@ check_binary()
   check_binary__bin="$1"
   if [ -z "${check_binary__bin}" ]; then
     # Really hope we at least have printf
-    printf -- "Must specify a path to a binary"
+    printf -- "Must specify a path to a binary\n"
     unset check_binary__bin
     return 1
   fi
@@ -113,7 +113,7 @@ check_binary()
     return 0
   else
     # Really hope we at least have printf
-    printf -- "Binary '%s' not found in \$PATH" "${check_binary__bin}"
+    printf -- "Binary '%s' not found in \$PATH\n" "${check_binary__bin}"
     unset check_binary__bin
     return 1
   fi
