@@ -673,9 +673,9 @@ main()
     return 1
   fi
 
-  check_binary cat
-  check_binary ssh
-  check_binary env
+  check_binary cat || return 1
+  check_binary ssh || return 1
+  check_binary env || return 1
 
   # We have everything, let's go
   if [ -z "$1" ]; then
