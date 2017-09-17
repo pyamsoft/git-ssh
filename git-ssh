@@ -476,11 +476,11 @@ EOF
   log "Auto generate config for version: %s" "${CONFIG_VERSION}"
   log "Remove old config %s" "${autoupdate_old_config__config}"
   check_binary rm || return 1
-  rm -f "${autoupdate_old_config__config}"
+  rm -f "${autoupdate_old_config__config}" || return 1
 
-  # Set the __git_ssh_path
-  __git_ssh_path="${autoupdate_old_config__config}.${CONFIG_VERSION}"
-  log "Set __git_ssh_path to: %s" "${__git_ssh_path}"
+  # Rerun locate_config_file, which should now work
+  locate_config_file "${autoupdate_old_config__dir}" \
+    "${autoupdate_old_config__base_config}" || return 1
 
   unset autoupdate_old_config__config
   unset autoupdate_old_config__dir
@@ -517,7 +517,8 @@ EOF
       if [ "${locate_config_file__base_config}" \
         = "${locate_config_file__ssh}" ]; then
         autoupdate_old_config "${locate_config_file__dir}" \
-          "${locate_config_file__config}" || return 1
+          "${locate_config_file__config}" \
+          || return 1
       elif [ "${locate_config_file__base_config}" \
         = "${locate_config_file__ssh}.${CONFIG_VERSION}" ]; then
         __git_ssh_path="${locate_config_file__config}"
