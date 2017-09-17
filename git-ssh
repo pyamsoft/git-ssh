@@ -203,10 +203,7 @@ handle_remove_config()
 {
   handle_remove_config__dir="$1"
   handle_remove_config__file="$2"
-  handle_remove_config__check="$(cat << EOF
-${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}
-EOF
-)"
+  handle_remove_config__check="${handle_remove_config__dir}/${handle_remove_config__file}.${CONFIG_VERSION}"
 
   log "Check for file exists: %s" "${handle_remove_config__check}"
   if [ ! -f "${handle_remove_config__check}" ]; then
@@ -244,10 +241,7 @@ create_config_if_wanted()
       && [ ! -z "${__create_config_target}" ]; then
       check_config_dir_conditions "${create_config_if_wanted__dir}" \
         || return 1
-      create_config_if_wanted__file="$(cat << EOF
-${create_config_if_wanted__dir}/${__create_config_name}.${CONFIG_VERSION}
-EOF
-)"
+      create_config_if_wanted__file="${create_config_if_wanted__dir}/${__create_config_name}.${CONFIG_VERSION}"
 
       printf -- "Create new config: %s\n" "${__create_config_name}"
 
@@ -299,12 +293,9 @@ remove_config_if_wanted()
       check_config_dir_conditions "${remove_config_if_wanted__dir}" \
         || return 1
       check_binary rm || return 1
-      remove_config_if_wanted__file="$(cat << EOF
-${remove_config_if_wanted__dir}/${__remove_config_name}.${CONFIG_VERSION}
-EOF
-)"
+      remove_config_if_wanted__file="${remove_config_if_wanted__dir}/${__remove_config_name}.${CONFIG_VERSION}"
 
-      rm -f "${remove_config_if_wanted__file}"
+      rm -f "${remove_config_if_wanted__file}" || return 1
       printf -- "Remove config: %s\n" "${remove_config_if_wanted__file}"
 
       unset remove_config_if_wanted__file
@@ -440,10 +431,7 @@ autoupdate_old_config()
 {
   autoupdate_old_config__dir="$1"
   autoupdate_old_config__config="$2"
-  autoupdate_old_config__base_config="$(cat << EOF
-$(basename "${autoupdate_old_config__config}")
-EOF
-)"
+  autoupdate_old_config__base_config="$(basename "${autoupdate_old_config__config}")"
 
   # Upgrading from git-ssh config version 1
   log "Old config file found at: %s" "${autoupdate_old_config__base_config}"
@@ -453,10 +441,7 @@ EOF
   # Get the old ssh_path from the original config file
   autoupdate_old_config__old="$(head -n 1 \
     < "${autoupdate_old_config__config}" )"
-  autoupdate_old_config__mashup="$(cat << EOF
-${autoupdate_old_config__base_config}:${autoupdate_old_config__old}
-EOF
-)"
+  autoupdate_old_config__mashup="${autoupdate_old_config__base_config}:${autoupdate_old_config__old}"
   log "Run artificial call: handle_create_config %s" \
     "${autoupdate_old_config__mashup}"
   handle_create_config "${autoupdate_old_config__mashup}" || return 1
@@ -508,10 +493,7 @@ locate_config_file()
     log "Check that %s is a file, not folder" "${locate_config_file__config}"
     if [ ! -d "${locate_config_file__config}" ]; then
       # Read the config if it is the one we want
-      locate_config_file__base_config="$(cat << EOF
-$(basename "${locate_config_file__config}")
-EOF
-)"
+      locate_config_file__base_config="$(basename "${locate_config_file__config}")"
       log "Check for match at (config): %s and (key): %s" \
         "${locate_config_file__base_config}" "${locate_config_file__ssh}.${CONFIG_VERSION}"
       if [ "${locate_config_file__base_config}" \
