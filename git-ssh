@@ -898,7 +898,7 @@ LC_ALL=C
 export LC_ALL
 
 # git-ssh
-readonly VERSION="1.2.3"
+readonly VERSION="1.2.4"
 
 # config file version
 readonly CONFIG_VERSION="2"
