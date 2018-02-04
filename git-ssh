@@ -731,6 +731,11 @@ main()
                 handled_by_remove=1
                 long_option="${OPTARG}"
                 ;;
+              ssh=*|config-dir=*|ssh-args=*)
+                long_option_has_arg=0
+                handled_by_wrapper=1
+                long_option="${OPTARG}"
+                ;;
               ssh|config-dir|ssh-args)
                 long_option_has_arg=1
                 handled_by_wrapper=1
@@ -793,6 +798,19 @@ main()
           # the options which takes an argument
           log "Has option no argument: %s" "${long_option}"
           case "${long_option}" in
+            ssh=*)
+              ssh_key="$(printf -- '%s' "${long_option}" \
+                | tr '=' ' ' | awk '{print $2}')"
+              ;;
+            config-dir=*)
+              config_dir="$(printf -- '%s' "${long_option}" \
+                | tr '=' ' ' | awk '{print $2}')"
+              ;;
+            ssh-args=*)
+              ssh_args="$(handle_ssh_args_option \
+                "$(printf -- '%s' "${long_option}" \
+                | tr '=' ' ' | awk '{print $2}')")"
+              ;;
             wrapper-help)
               list_wrapper_help || return 1
               return 0
