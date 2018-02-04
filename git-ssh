@@ -578,15 +578,23 @@ list_wrapper_help()
   printf -- "%s\\n" "$(cat << EOF
 options
 
-  --ssh CONFIG               The name identifier of a config file in the \
-\${config_dir}
-  --ssh-args COMMA-OPTIONS   Comma separated list of options to pass to ssh
-  --config-dir DIR           The path to the directory where configs are stored
-  --create-config NAME:PATH  Create a config called NAME with
-                             the path PATH. Does not stop operation \
-following completion
-  --remove-config NAME       Remove the config specified by NAME
+  --ssh CONFIG
+  --ssh=CONFIG               The name identifier of a config file in the \${config_dir}
+
+  --ssh-args COMMA-OPTIONS
+  --ssh-args=COMMA-OPTIONS   Comma separated list of options to pass to ssh
+
+  --config-dir DIR
+  --config-dir=DIR           The path to the directory where configs are stored
+
+  --create-config NAME:PATH
+  --create-config=NAME:PATH  Create a config called NAME with
+                             the path PATH. Does not stop operation following completion
+
+  --remove-config NAME
+  --remove-config=NAME       Remove the config specified by NAME
                              Does not stop operation following completion
+
   --list-configs             Lists the contents of the \${config_dir}
                              Stops operation following completion
   --wrapper-debug            Enables debugging statements
