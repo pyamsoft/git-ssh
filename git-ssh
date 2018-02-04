@@ -649,6 +649,19 @@ run_git()
 }
 
 ##
+# Split option by equals sign and return actual argument
+# $1 - argument to split up
+split_option_equals()
+{
+  if [ -n "$1" ]; then
+    printf -- '%s' "$1" | tr '=' ' ' | awk '{print $2}'
+  else
+    printf -- ''
+  fi
+  return 0
+}
+
+##
 # Main function
 #
 # $@ command line arguments
@@ -676,6 +689,8 @@ main()
   check_binary cat || return 1
   check_binary ssh || return 1
   check_binary env || return 1
+  check_binary tr || return 1
+  check_binary awk || return 1
 
   # We have everything, let's go
   if [ -z "$1" ]; then
@@ -799,17 +814,14 @@ main()
           log "Has option no argument: %s" "${long_option}"
           case "${long_option}" in
             ssh=*)
-              ssh_key="$(printf -- '%s' "${long_option}" \
-                | tr '=' ' ' | awk '{print $2}')"
+              ssh_key="$(split_option_equals "${long_option}")"
               ;;
             config-dir=*)
-              config_dir="$(printf -- '%s' "${long_option}" \
-                | tr '=' ' ' | awk '{print $2}')"
+              config_dir="$(split_option_equals "${long_option}")"
               ;;
             ssh-args=*)
-              ssh_args="$(handle_ssh_args_option \
-                "$(printf -- '%s' "${long_option}" \
-                | tr '=' ' ' | awk '{print $2}')")"
+              config_dir="$(handle_ssh_args_option \
+                "$(split_option_equals "${long_option}")")"
               ;;
             wrapper-help)
               list_wrapper_help || return 1
