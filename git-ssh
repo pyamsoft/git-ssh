@@ -736,9 +736,19 @@ main()
                 long_option="${OPTARG}"
                 long_option_has_arg=0
                 ;;
+              create-config=*)
+                long_option_has_arg=0
+                handled_by_create=1
+                long_option="${OPTARG}"
+                ;;
               create-config)
                 long_option_has_arg=1
                 handled_by_create=1
+                long_option="${OPTARG}"
+                ;;
+              remove-config=*)
+                long_option_has_arg=0
+                handled_by_remove=1
                 long_option="${OPTARG}"
                 ;;
               remove-config)
@@ -821,7 +831,15 @@ main()
               ;;
             ssh-args=*)
               config_dir="$(handle_ssh_args_option \
-                "$(split_option_equals "${long_option}")")"
+                "$(split_option_equals "${long_option}")")" || return 1
+              ;;
+            create-config=*)
+              handle_create_config "$(split_option_equals \
+                "${long_option}")" || return 1
+              ;;
+            remove-config=*)
+              handle_remove_config "${config_dir}" \
+                "$(split_option_equals "${long_option}")" || return 1
               ;;
             wrapper-help)
               list_wrapper_help || return 1
