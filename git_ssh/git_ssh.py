@@ -86,7 +86,7 @@ class GitSsh:
         path = GitSsh._version_path(config_dir, name)
         Logger.d("Create string -- name: {}, path: {}, key: {}".format(
             name, path, key))
-        return WriteConfig(name, path, WriteSource(key))
+        return WriteConfig(name, path, WriteSource(name, path, key))
 
     @staticmethod
     def _parse_remove(remove_config, config_dir):
@@ -97,7 +97,8 @@ class GitSsh:
         path = GitSsh._version_path(config_dir, remove_config)
         Logger.d("Remove config -- name: {}, path: {}".format(
             remove_config, path))
-        return RemoveConfig(remove_config, path, RemoveSource(path))
+        return RemoveConfig(remove_config, path,
+                            RemoveSource(remove_config, path))
 
     @staticmethod
     def _list_all_configs(config_dir):

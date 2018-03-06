@@ -5,12 +5,6 @@ from ..logger.logger import Logger
 
 class WriteConfig:
     @staticmethod
-    def from_(config):
-        """Create a new RemoveConfig from a Config object"""
-        return WriteConfig(config.name(), config.path(),
-                           WriteSource(config.path()))
-
-    @staticmethod
     def empty():
         """Returns an empty WriteConfig object
 
@@ -34,24 +28,26 @@ class WriteConfig:
 
     def write(self):
         """Write the content to the WriteSource"""
-        return self._source.write(self._name, self._path)
+        return self._source.write()
 
 
 class EmptyWriteSource:
-    def write(self, name, path):
+    def write(self):
         return False
 
 
 class WriteSource:
-    def __init__(self, key):
+    def __init__(self, name, path, key):
         """Create a new WriteSource object
 
         Path can be absolute or relative depending on how the caller wishes
         to use the source
         """
+        self._name = name
+        self._path = path
         self._key = key
 
-    def write(self, name, path):
+    def write(self):
         """Write the content stream to the source _path
 
         If the content fails to write, False is returned
@@ -60,16 +56,16 @@ class WriteSource:
         if not self._key:
             raise RuntimeError("Cannot call write() with invalid key")
 
-        if not path:
+        if not self._path:
             raise RuntimeError("Cannot call write() with invalid path")
 
-        if not name:
+        if not self._name:
             raise RuntimeError("Cannot call write() with invalid name")
 
         try:
-            src = open(path, mode="w")
+            src = open(self._path, mode="w")
         except OSError as e:
-            Logger.e("Unable to write {}".format(path))
+            Logger.e("Unable to write {}".format(self._path))
             Logger.e(e)
             return False
         else:
@@ -88,6 +84,6 @@ Host *
                 if result is None:
                     return False
                 else:
-
-                    Logger.log("Config created: {} at {}".format(name, path))
+                    Logger.log("Config created: {} at {}".format(
+                        self._name, self._path))
                     return True

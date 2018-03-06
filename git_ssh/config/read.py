@@ -5,12 +5,6 @@ from ..logger.logger import Logger
 
 class ReadConfig:
     @staticmethod
-    def from_(config):
-        """Create a new ReadConfig from a Config object"""
-        return ReadConfig(config.name(), config.path(),
-                          ReadSource(config.path()))
-
-    @staticmethod
     def empty():
         """Returns an empty ReadConfig object
 

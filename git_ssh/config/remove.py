@@ -7,12 +7,6 @@ from ..logger.logger import Logger
 
 class RemoveConfig:
     @staticmethod
-    def from_(config):
-        """Create a new RemoveConfig from a Config object"""
-        return RemoveConfig(config.name(), config.path(),
-                            RemoveSource(config.path()))
-
-    @staticmethod
     def empty():
         """Returns an empty RemoveConfig object
 
@@ -36,21 +30,22 @@ class RemoveConfig:
 
     def remove(self):
         """Remove this config"""
-        return self._source.remove(self._name)
+        return self._source.remove()
 
 
 class EmptyRemoveSource:
-    def remove(self, name):
+    def remove(self):
         return False
 
 
 class RemoveSource:
-    def __init__(self, path):
+    def __init__(self, name, path):
         """Create a new RemoveSource object
 
         Path can be absolute or relative depending on how the caller wishes
         to use the source
         """
+        self._name = name
         self._path = path
 
     def remove(self, name):
@@ -72,5 +67,6 @@ class RemoveSource:
             Logger.e(e)
             return False
         else:
-            Logger.log("Config removed: {} at {}".format(name, self._path))
+            Logger.log("Config removed: {} at {}".format(
+                self._name, self._path))
             return True
