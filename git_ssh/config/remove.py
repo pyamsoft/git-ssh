@@ -18,7 +18,7 @@ class RemoveConfig:
         An empty RemoveConfig can be used in the place of None but contains
         invalid data and should not be used as an actual data source.
         """
-        return RemoveConfig("", "")
+        return RemoveConfig("", EmptyRemoveSource())
 
     def __init__(self, name, source):
         """Initialize a RemoveConfig object
@@ -37,8 +37,13 @@ class RemoveConfig:
         return self._source.remove()
 
 
-class RemoveSource:
+class EmptyRemoveSource:
 
+    def remove(self):
+        return False
+
+
+class RemoveSource:
     def __init__(self, path):
         """Create a new RemoveSource object
 

@@ -16,7 +16,7 @@ class ReadConfig:
         An empty ReadConfig can be used in the place of None but contains
         invalid data and should not be used as an actual data source.
         """
-        return ReadConfig("", "")
+        return ReadConfig("", EmptyReadSource())
 
     def __init__(self, name, source):
         """Initialize a ReadConfig object
@@ -33,6 +33,12 @@ class ReadConfig:
     def read(self):
         """Read content from the ConfigSource and return it to the caller"""
         return self._source.read()
+
+
+class EmptyReadSource:
+
+    def read(self):
+        return ""
 
 
 class ReadSource:
