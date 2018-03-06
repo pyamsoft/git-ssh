@@ -98,7 +98,7 @@ def _parse_options():
     # Find git path if passed, else default to DEFAULT_GIT_PATH
     git_path = wrapper_args.git_path
     if not git_path:
-        git_path = "/usr/bin/git"
+        git_path = PathConstants.GIT_PATH
 
     return parser.print_help, git_path, wrapper_args, plain_args
 
