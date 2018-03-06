@@ -89,7 +89,7 @@ class GitSsh:
         path = GitSsh._version_path(config_dir, name)
         Logger.d("Create string -- name: {}, path: {}, key: {}".format(
             name, path, key))
-        return WriteConfig(name, path, WriteSource(name, path, key))
+        return WriteConfig(WriteSource(name, path, key))
 
     @staticmethod
     def _parse_remove(remove_config, config_dir):
@@ -100,8 +100,7 @@ class GitSsh:
         path = GitSsh._version_path(config_dir, remove_config)
         Logger.d("Remove config -- name: {}, path: {}".format(
             remove_config, path))
-        return RemoveConfig(remove_config, path,
-                            RemoveSource(remove_config, path))
+        return RemoveConfig(RemoveSource(remove_config, path))
 
     @staticmethod
     def _list_all_configs(config_dir):
@@ -110,8 +109,7 @@ class GitSsh:
         for config_file in os.listdir(config_dir):
             abspath = GitSsh._abs_path(config_dir, config_file)
             if os.path.isfile(abspath):
-                read_config = ReadConfig(config_file, abspath,
-                                         ReadSource(abspath))
+                read_config = ReadConfig(ReadSource(abspath))
 
                 content = read_config.read()
                 if content:
@@ -144,18 +142,14 @@ class GitSsh:
         write_config = self._parse_create_string(wrapper_args.create_string,
                                                  config_dir)
 
-        # If this is a valid WriteConfig
-        if write_config.name():
-            Logger.d("Write key file for {}".format(write_config.name()))
-            write_config.write()
+        # If the write config is empty, this does nothing
+        write_config.write()
 
         remove_config = self._parse_remove(wrapper_args.remove_config,
                                            config_dir)
 
-        # If this is a valid RemoveConfig
-        if remove_config.name():
-            Logger.d("Remove config: {}".format(write_config.name()))
-            remove_config.remove()
+        # If the remove_config is empty, this does nothing
+        remove_config.remove()
 
         # Parse ssh options into list
         if wrapper_args.ssh_opts:

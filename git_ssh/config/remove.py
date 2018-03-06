@@ -13,20 +13,14 @@ class RemoveConfig:
         An empty RemoveConfig can be used in the place of None but contains
         invalid data and should not be used as an actual data source.
         """
-        return RemoveConfig("", "", EmptyRemoveSource())
+        return RemoveConfig(EmptyRemoveSource())
 
-    def __init__(self, name, path, source):
+    def __init__(self, source):
         """Initialize a RemoveConfig object
 
         For empty Config objects, use the static empty() function
         """
-        self._name = name
-        self._path = path
         self._source = source
-
-    def name(self):
-        """Return the name of this config"""
-        return self._name
 
     def remove(self):
         """Remove this config"""
@@ -35,6 +29,7 @@ class RemoveConfig:
 
 class EmptyRemoveSource:
     def remove(self):
+        Logger.d("EmptyRemoveSource.remove() is a no-op")
         return False
 
 

@@ -11,20 +11,14 @@ class WriteConfig:
         An empty WriteConfig can be used in the place of None but contains
         invalid data and should not be used as an actual data source.
         """
-        return WriteConfig("", "", EmptyWriteSource())
+        return WriteConfig(EmptyWriteSource())
 
-    def __init__(self, name, path, source):
+    def __init__(self, source):
         """Initialize a WriteConfig object
 
         For empty Config objects, use the static empty() function
         """
-        self._name = name
-        self._path = path
         self._source = source
-
-    def name(self):
-        """Return the name of this config"""
-        return self._name
 
     def write(self):
         """Write the content to the WriteSource"""
@@ -33,6 +27,7 @@ class WriteConfig:
 
 class EmptyWriteSource:
     def write(self):
+        Logger.d("EmptyWriteSource.write() is a no-op")
         return False
 
 
