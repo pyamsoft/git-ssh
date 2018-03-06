@@ -43,6 +43,12 @@ def _initialize_parser():
         metavar="NAME",
         help="Remove an existing config by NAME")
     parser.add_argument(
+        "--ssh-opts",
+        action="store",
+        dest="ssh_opts",
+        metavar="OPTION STRING",
+        help="Comma separated string of SSH options")
+    parser.add_argument(
         "--list-configs",
         action="store_const",
         dest="list",

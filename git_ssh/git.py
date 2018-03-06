@@ -71,6 +71,8 @@ class Git:
         ssh_env[Git.SSH_COMMAND] = "ssh -F '{}' {}".format(
             ssh_config.path(), "".join(ssh_args))
 
+        Logger.d("SSH env: {}".format(ssh_env[Git.SSH_COMMAND]))
+
         try:
             call_git = sh.Command(self._git_path)
             call_git(git_args, _env=ssh_env, _fg=True, _tty_in=True)

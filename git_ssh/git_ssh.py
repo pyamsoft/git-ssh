@@ -153,6 +153,11 @@ class GitSsh:
             Logger.d("Remove config: {}".format(write_config.name()))
             remove_config.remove()
 
+        # Parse ssh options into list
+        if wrapper_args.ssh_opts:
+            for option in wrapper_args.ssh_opts.split(","):
+                self._ssh_options.append("-o {} ".format(option))
+
         if wrapper_args.list:
             GitSsh._list_all_configs(config_dir)
             self._done = True
