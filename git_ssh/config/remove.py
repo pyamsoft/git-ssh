@@ -9,11 +9,8 @@ class RemoveConfig:
     @staticmethod
     def from_(config):
         """Create a new RemoveConfig from a Config object"""
-        return RemoveConfig(
-            config.name(),
-            config.path(),
-            RemoveSource(config.path())
-        )
+        return RemoveConfig(config.name(), config.path(),
+                            RemoveSource(config.path()))
 
     @staticmethod
     def empty():
@@ -43,7 +40,6 @@ class RemoveConfig:
 
 
 class EmptyRemoveSource:
-
     def remove(self, name):
         return False
 

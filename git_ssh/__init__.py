@@ -43,6 +43,12 @@ def _initialize_parser():
         metavar="NAME",
         help="Remove an existing config by NAME")
     parser.add_argument(
+        "--list-configs",
+        action="store_const",
+        dest="list",
+        const=True,
+        help="List all configs found in ${config_dir}")
+    parser.add_argument(
         "--git-path",
         action="store",
         dest="git_path",

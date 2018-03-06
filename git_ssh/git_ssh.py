@@ -5,14 +5,9 @@ import os
 from .config.config import Config
 from .errors.expected import ExpectedError
 from .logger.logger import Logger
-from .config.remove import (
-    RemoveConfig,
-    RemoveSource
-)
-from .config.write import (
-    WriteConfig,
-    WriteSource
-)
+from .config.read import (ReadConfig, ReadSource)
+from .config.remove import (RemoveConfig, RemoveSource)
+from .config.write import (WriteConfig, WriteSource)
 
 
 class GitSsh:
@@ -89,8 +84,8 @@ class GitSsh:
 
         name, key = split_create
         path = GitSsh._version_path(config_dir, name)
-        Logger.d("Create string -- name: {}, path: {}, key: {}"
-                 .format(name, path, key))
+        Logger.d("Create string -- name: {}, path: {}, key: {}".format(
+            name, path, key))
         return WriteConfig(name, path, WriteSource(key))
 
     @staticmethod
@@ -100,9 +95,27 @@ class GitSsh:
             return RemoveConfig.empty()
 
         path = GitSsh._version_path(config_dir, remove_config)
-        Logger.d("Remove config -- name: {}, path: {}"
-                 .format(remove_config, path))
+        Logger.d("Remove config -- name: {}, path: {}".format(
+            remove_config, path))
         return RemoveConfig(remove_config, path, RemoveSource(path))
+
+    @staticmethod
+    def _list_all_configs(config_dir):
+        Logger.log("Listing all configs in: {}\n".format(config_dir))
+        counter = 0
+        for config_file in os.listdir(config_dir):
+            abspath = GitSsh._abs_path(config_dir, config_file)
+            if os.path.isfile(abspath):
+                read_config = ReadConfig(config_file, abspath,
+                                         ReadSource(abspath))
+
+                content = read_config.read()
+                if content:
+                    counter += 1
+                    Logger.log("[{}] ({})".format(config_file, abspath))
+                    Logger.log(content)
+
+        Logger.log("Total config count: {}".format(counter))
 
     def __init__(self, git, wrapper_args, git_args):
         """Initialize GitSsh wrapper"""
@@ -110,6 +123,7 @@ class GitSsh:
         self._git_args = git_args
         self._ssh = Config.empty()
         self._ssh_options = []
+        self._done = False
         self._handle_wrapper_args(wrapper_args)
 
     def _handle_wrapper_args(self, wrapper_args):
@@ -123,41 +137,45 @@ class GitSsh:
             Logger.e("Unable to create config dir, may already exist")
             Logger.e(e)
 
-        write_config = self._parse_create_string(
-            wrapper_args.create_string,
-            config_dir
-        )
+        write_config = self._parse_create_string(wrapper_args.create_string,
+                                                 config_dir)
 
         # If this is a valid WriteConfig
         if write_config.name():
             Logger.d("Write key file for {}".format(write_config.name()))
             write_config.write()
 
-        remove_config = self._parse_remove(
-            wrapper_args.remove_config,
-            config_dir
-        )
+        remove_config = self._parse_remove(wrapper_args.remove_config,
+                                           config_dir)
 
-        # If this is a valid WriteConfig
+        # If this is a valid RemoveConfig
         if remove_config.name():
             Logger.d("Remove config: {}".format(write_config.name()))
             remove_config.remove()
 
-        # Find ssh config if specified
-        name = wrapper_args.ssh
-        if name:
-            found_config = self._find_ssh_config(config_dir, name)
-            if found_config.name():
-                self._ssh = found_config
-            else:
-                raise NoSshConfigError(name)
+        if wrapper_args.list:
+            GitSsh._list_all_configs(config_dir)
+            self._done = True
+        else:
+            # Find ssh config if specified
+            name = wrapper_args.ssh
+            if name:
+                found_config = self._find_ssh_config(config_dir, name)
+                if found_config.name():
+                    self._ssh = found_config
+                else:
+                    raise NoSshConfigError(name)
 
     def call(self):
         """Call through to either Git or wrap in an SSH environment"""
-        if self._ssh.path():
-            self._git.ssh_call(self._git_args, self._ssh, self._ssh_options)
+        if self._done:
+            Logger.d("Already done, ignore call()")
         else:
-            self._git.call(self._git_args)
+            if self._ssh.path():
+                self._git.ssh_call(self._git_args, self._ssh,
+                                   self._ssh_options)
+            else:
+                self._git.call(self._git_args)
 
 
 class NoSshConfigError(ExpectedError):

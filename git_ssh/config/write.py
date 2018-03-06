@@ -7,11 +7,8 @@ class WriteConfig:
     @staticmethod
     def from_(config):
         """Create a new RemoveConfig from a Config object"""
-        return WriteConfig(
-            config.name(),
-            config.path(),
-            WriteSource(config.path())
-        )
+        return WriteConfig(config.name(), config.path(),
+                           WriteSource(config.path()))
 
     @staticmethod
     def empty():
@@ -41,7 +38,6 @@ class WriteConfig:
 
 
 class EmptyWriteSource:
-
     def write(self, name, path):
         return False
 

@@ -7,11 +7,8 @@ class ReadConfig:
     @staticmethod
     def from_(config):
         """Create a new ReadConfig from a Config object"""
-        return ReadConfig(
-            config.name(),
-            config.path(),
-            ReadSource(config.path())
-        )
+        return ReadConfig(config.name(), config.path(),
+                          ReadSource(config.path()))
 
     @staticmethod
     def empty():
@@ -41,7 +38,6 @@ class ReadConfig:
 
 
 class EmptyReadSource:
-
     def read(self):
         return ""
 
