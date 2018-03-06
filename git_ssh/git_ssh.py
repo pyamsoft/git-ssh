@@ -5,6 +5,10 @@ import os
 from .config.config import Config
 from .errors.expected import ExpectedError
 from .logger.logger import Logger
+from .config.write import (
+    WriteConfig,
+    WriteSource
+)
 
 
 class GitSsh:
@@ -15,6 +19,11 @@ class GitSsh:
     def _abs_path(directory, file):
         """Concats a directory and file path together to an absolute path"""
         return "{}/{}".format(directory, file)
+
+    @staticmethod
+    def _version_path(directory, file):
+        """Concats a directory and file path together to an absolute path"""
+        return "{}/{}.{}".format(directory, file, GitSsh.CONFIG_VERSION)
 
     @staticmethod
     def _is_config(name, file):
@@ -64,6 +73,22 @@ class GitSsh:
 
         return config_dir
 
+    @staticmethod
+    def _parse_create_string(create_string, config_dir):
+        if not create_string:
+            Logger.d("No create_string passed, empty WriteConfig")
+            return WriteConfig.empty()
+
+        split_create = create_string.split(":")
+        if len(split_create) != 2:
+            raise InvalidCreateStringError(create_string)
+
+        name, key = split_create
+        path = GitSsh._version_path(config_dir, name)
+        Logger.d("Create string -- name: {}, path: {}, key: {}"
+                 .format(name, path, key))
+        return WriteConfig(name, path, WriteSource(key))
+
     def __init__(self, git, wrapper_args, git_args):
         """Initialize GitSsh wrapper"""
         self._git = git
@@ -75,6 +100,23 @@ class GitSsh:
     def _handle_wrapper_args(self, wrapper_args):
         """Parse the wrapper specific arguments into correct flags"""
         config_dir = self._find_config_dir(wrapper_args.config_dir)
+
+        # Make the config dir
+        try:
+            os.mkdir(config_dir)
+        except FileExistsError as e:
+            Logger.e("Unable to create config dir, may already exist")
+            Logger.e(e)
+
+        write_config = self._parse_create_string(
+            wrapper_args.create_string,
+            config_dir
+        )
+
+        # If this is a valid WriteConfig
+        if write_config.name():
+            Logger.d("Write key file for {}".format(write_config.name()))
+            write_config.write()
 
         # Find ssh config if specified
         name = wrapper_args.ssh
@@ -98,3 +140,10 @@ class NoSshConfigError(ExpectedError):
         """No config found for requested name"""
         super(NoSshConfigError, self) \
             .__init__("Could not find config matching key: {}".format(key))
+
+
+class InvalidCreateStringError(ExpectedError):
+    def __init__(self, string):
+        """Invalid create string format, either too many args or too little"""
+        super(InvalidCreateStringError, self) \
+            .__init__("Create string is invalid format: {}".format(string))

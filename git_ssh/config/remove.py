@@ -9,7 +9,11 @@ class RemoveConfig:
     @staticmethod
     def from_(config):
         """Create a new RemoveConfig from a Config object"""
-        return RemoveConfig(config.name(), RemoveSource(config.path()))
+        return RemoveConfig(
+            config.name(),
+            config.path(),
+            RemoveSource(config.path())
+        )
 
     @staticmethod
     def empty():
@@ -18,14 +22,15 @@ class RemoveConfig:
         An empty RemoveConfig can be used in the place of None but contains
         invalid data and should not be used as an actual data source.
         """
-        return RemoveConfig("", EmptyRemoveSource())
+        return RemoveConfig("", "", EmptyRemoveSource())
 
-    def __init__(self, name, source):
+    def __init__(self, name, path, source):
         """Initialize a RemoveConfig object
 
         For empty Config objects, use the static empty() function
         """
         self._name = name
+        self._path = path
         self._source = source
 
     def name(self):

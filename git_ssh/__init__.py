@@ -31,6 +31,12 @@ def _initialize_parser():
         metavar="DIRECTORY",
         help="Directory to store and search for config files")
     parser.add_argument(
+        "--create-config",
+        action="store",
+        dest="create_string",
+        metavar="NAME:SSH_KEY_PATH",
+        help="Create a new ssh config using NAME:SSH_KEY_PATH")
+    parser.add_argument(
         "--git-path",
         action="store",
         dest="git_path",

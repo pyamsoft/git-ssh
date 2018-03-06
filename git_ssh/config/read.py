@@ -7,7 +7,11 @@ class ReadConfig:
     @staticmethod
     def from_(config):
         """Create a new ReadConfig from a Config object"""
-        return ReadConfig(config.name(), ReadSource(config.path()))
+        return ReadConfig(
+            config.name(),
+            config.path(),
+            ReadSource(config.path())
+        )
 
     @staticmethod
     def empty():
@@ -16,14 +20,15 @@ class ReadConfig:
         An empty ReadConfig can be used in the place of None but contains
         invalid data and should not be used as an actual data source.
         """
-        return ReadConfig("", EmptyReadSource())
+        return ReadConfig("", "", EmptyReadSource())
 
-    def __init__(self, name, source):
+    def __init__(self, name, path, source):
         """Initialize a ReadConfig object
 
         For empty Config objects, use the static empty() function
         """
         self._name = name
+        self._path = path
         self._source = source
 
     def name(self):
