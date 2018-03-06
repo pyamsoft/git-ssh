@@ -5,6 +5,10 @@ import os
 from .config.config import Config
 from .errors.expected import ExpectedError
 from .logger.logger import Logger
+from .config.remove import (
+    RemoveConfig,
+    RemoveSource
+)
 from .config.write import (
     WriteConfig,
     WriteSource
@@ -89,6 +93,17 @@ class GitSsh:
                  .format(name, path, key))
         return WriteConfig(name, path, WriteSource(key))
 
+    @staticmethod
+    def _parse_remove(remove_config, config_dir):
+        if not remove_config:
+            Logger.d("No remove_config passed, empty RemoveConfig")
+            return RemoveConfig.empty()
+
+        path = GitSsh._version_path(config_dir, remove_config)
+        Logger.d("Remove config -- name: {}, path: {}"
+                 .format(remove_config, path))
+        return RemoveConfig(remove_config, path, RemoveSource(path))
+
     def __init__(self, git, wrapper_args, git_args):
         """Initialize GitSsh wrapper"""
         self._git = git
@@ -117,6 +132,16 @@ class GitSsh:
         if write_config.name():
             Logger.d("Write key file for {}".format(write_config.name()))
             write_config.write()
+
+        remove_config = self._parse_remove(
+            wrapper_args.remove_config,
+            config_dir
+        )
+
+        # If this is a valid WriteConfig
+        if remove_config.name():
+            Logger.d("Remove config: {}".format(write_config.name()))
+            remove_config.remove()
 
         # Find ssh config if specified
         name = wrapper_args.ssh

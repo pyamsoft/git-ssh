@@ -37,6 +37,12 @@ def _initialize_parser():
         metavar="NAME:SSH_KEY_PATH",
         help="Create a new ssh config using NAME:SSH_KEY_PATH")
     parser.add_argument(
+        "--remove-config",
+        action="store",
+        dest="remove_config",
+        metavar="NAME",
+        help="Remove an existing config by NAME")
+    parser.add_argument(
         "--git-path",
         action="store",
         dest="git_path",

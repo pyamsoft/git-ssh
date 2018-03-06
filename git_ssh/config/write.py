@@ -37,12 +37,12 @@ class WriteConfig:
 
     def write(self):
         """Write the content to the WriteSource"""
-        return self._source.write(self._path)
+        return self._source.write(self._name, self._path)
 
 
 class EmptyWriteSource:
 
-    def write(self, path):
+    def write(self, name, path):
         return False
 
 
@@ -55,7 +55,7 @@ class WriteSource:
         """
         self._key = key
 
-    def write(self, path):
+    def write(self, name, path):
         """Write the content stream to the source _path
 
         If the content fails to write, False is returned
@@ -66,6 +66,9 @@ class WriteSource:
 
         if not path:
             raise RuntimeError("Cannot call write() with invalid path")
+
+        if not name:
+            raise RuntimeError("Cannot call write() with invalid name")
 
         try:
             src = open(path, mode="w")
@@ -89,4 +92,6 @@ Host *
                 if result is None:
                     return False
                 else:
+
+                    Logger.log("Config created: {} at {}".format(name, path))
                     return True
