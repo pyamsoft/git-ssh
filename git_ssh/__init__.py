@@ -3,15 +3,11 @@
 import argparse
 import sys
 
+from .constants import PathConstants
 from .errors.expected import ExpectedError
 from .git_ssh import GitSsh
 from .git import Git
 from .logger.logger import Logger
-
-
-class PathConstants:
-    """The default path to the real git binary"""
-    GIT_PATH = "/usr/bin/git"
 
 
 def _initialize_parser():

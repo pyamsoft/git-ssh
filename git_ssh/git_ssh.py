@@ -2,6 +2,7 @@
 
 import os
 
+from .constants import PathConstants
 from .config.config import Config
 from .errors.expected import ExpectedError
 from .logger.logger import Logger
@@ -13,6 +14,7 @@ from .config.write import (WriteConfig, WriteSource)
 class GitSsh:
     """Current config version"""
     CONFIG_VERSION = 2
+    XDG_CONFIG = "XDG_CONFIG_HOME"
 
     @staticmethod
     def _abs_path(directory, file):
@@ -54,20 +56,21 @@ class GitSsh:
         # Or from environment
         if not config_dir:
             try:
-                xdg_env = os.environ["XDG_CONFIG_HOME"]
+                xdg_env = os.environ[GitSsh.XDG_CONFIG]
                 if xdg_env:
                     config_dir = "{}/git-ssh".format(xdg_env)
-                    Logger.d("Config dir from XDG_CONFIG_HOME: {}".format(
-                        config_dir))
+                    Logger.d("Config dir from {}: {}".format(
+                        GitSsh.XDG_CONFIG, config_dir))
             except KeyError:
-                Logger.e("Error getting config dir from XDG_CONFIG_HOME")
+                Logger.e("Error getting config dir from {}".format(
+                    GitSsh.XDG_CONFIG))
 
                 # Set to nothing so it will be handled by next if
                 config_dir = None
 
         # Or from default
         if not config_dir:
-            config_dir = os.path.expanduser("~/.config/git-ssh")
+            config_dir = os.path.expanduser(PathConstants.DEFAULT_CONFIG_DIR)
             Logger.d("Config dir from fallback: {}".format(config_dir))
 
         return config_dir
