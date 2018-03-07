@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
 
 from .constants import PathConstants
 from .errors.expected import ExpectedError
 from .git_ssh import GitSsh
 from .git import Git
 from .logger.logger import Logger
+from ._version import __version__
 
 
 def _initialize_parser():
@@ -61,6 +61,11 @@ def _initialize_parser():
         "--ssh-help",
         action="help",
         help="Display this help and exit")
+    parser.add_argument(
+        "--ssh-version",
+        action="version",
+        version="%(prog)s {}".format(__version__),
+        help="Display the version and exit")
     parser.add_argument(
         "--ssh-debug",
         action="store_const",
