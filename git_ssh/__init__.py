@@ -58,9 +58,7 @@ def _initialize_parser():
         help="Path to Git binary (defaults to {})".format(
             PathConstants.GIT_PATH))
     parser.add_argument(
-        "--ssh-help",
-        action="help",
-        help="Display this help and exit")
+        "--ssh-help", action="help", help="Display this help and exit")
     parser.add_argument(
         "--ssh-version",
         action="version",
