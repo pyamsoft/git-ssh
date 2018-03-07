@@ -108,7 +108,8 @@ class GitSsh:
         counter = 0
         for config_file in os.listdir(config_dir):
             abspath = GitSsh._abs_path(config_dir, config_file)
-            if os.path.isfile(abspath):
+            if os.path.isfile(abspath) and \
+                    abspath.endswith("".format(GitSsh.CONFIG_VERSION)):
                 read_config = ReadConfig(ReadSource(abspath))
 
                 content = read_config.read()
