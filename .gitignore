@@ -8,3 +8,8 @@ venv
 # Ignore build caches and files
 *.pyc
 __pycache__
+
+# Builds
+build
+dist
+*.egg-info
