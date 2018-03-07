@@ -1,6 +1,0 @@
-#!/bin/sh
-
-python3 -m git_ssh "$@" || exit 1
-exit 0
-
-# vim: set syntax=sh tabstop=2 softtabstop=2 shiftwidth=2 shiftround expandtab:

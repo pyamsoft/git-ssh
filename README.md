@@ -12,7 +12,7 @@ The script currently handles the following option(s):
   The contents expected in the CONFIG file are listed in the CONFIGURATION  
   section  
 
-  --ssh-args COMMA-SEPARATED-OPTIONS
+  --ssh-opts COMMA-SEPARATED-OPTIONS
 
   A comma separated list of options to pass to the invocation of ssh. It is  
   recommended that this list of options be surrounded by double quotes.
