@@ -59,10 +59,8 @@ def _initialize_parser():
             PathConstants.GIT_PATH))
     parser.add_argument(
         "--ssh-help",
-        action="store_const",
-        const=True,
-        dest="help",
-        help="Display this help")
+        action="help",
+        help="Display this help and exit")
     parser.add_argument(
         "--ssh-debug",
         action="store_const",
@@ -96,18 +94,13 @@ def _parse_options():
     if not git_path:
         git_path = PathConstants.GIT_PATH
 
-    return parser.print_help, git_path, wrapper_args, plain_args
+    return git_path, wrapper_args, plain_args
 
 
 def main():
     """git-ssh a simple wrapper for Git to help with multiple SSH keys"""
     # Parse the options before starting setup
-    print_help, git_path, wrapper_args, plain_args = _parse_options()
-
-    # Print out help and exit
-    if wrapper_args.help:
-        print_help()
-        sys.exit(0)
+    git_path, wrapper_args, plain_args = _parse_options()
 
     try:
         wrapper = GitSsh(Git(git_path), wrapper_args, plain_args)
