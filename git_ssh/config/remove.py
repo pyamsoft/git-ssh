@@ -14,6 +14,12 @@ class RemoveConfig:
 
     def remove(self):
         """Remove this config"""
+        if self._path is None:
+            raise RuntimeError("Cannot call remove() with invalid path")
+
+        if self._name is None:
+            raise RuntimeError("Cannot call remove() with invalid name")
+
         try:
             os.remove(self._path)
         except Exception as e:

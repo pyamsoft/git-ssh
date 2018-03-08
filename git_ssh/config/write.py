@@ -4,40 +4,9 @@ from ..logger.logger import Logger
 
 
 class WriteConfig:
-    @staticmethod
-    def empty():
-        """Returns an empty WriteConfig object
 
-        An empty WriteConfig can be used in the place of None but contains
-        invalid data and should not be used as an actual data source.
-        """
-        return WriteConfig(EmptyWriteSource())
-
-    def __init__(self, source):
-        """Initialize a WriteConfig object
-
-        For empty Config objects, use the static empty() function
-        """
-        self._source = source
-
-    def write(self):
-        """Write the content to the WriteSource"""
-        return self._source.write()
-
-
-class EmptyWriteSource:
-    def write(self):
-        Logger.d("EmptyWriteSource.write() is a no-op")
-        return False
-
-
-class WriteSource:
     def __init__(self, name, path, key):
-        """Create a new WriteSource object
-
-        Path can be absolute or relative depending on how the caller wishes
-        to use the source
-        """
+        """Initialize a WriteConfig object"""
         self._name = name
         self._path = path
         self._key = key
@@ -48,13 +17,13 @@ class WriteSource:
         If the content fails to write, False is returned
         If the content is invalid, a RuntimeError is raised
         """
-        if not self._key:
+        if self._key is None:
             raise RuntimeError("Cannot call write() with invalid key")
 
-        if not self._path:
+        if self._path is None:
             raise RuntimeError("Cannot call write() with invalid path")
 
-        if not self._name:
+        if self._name is None:
             raise RuntimeError("Cannot call write() with invalid name")
 
         try:

@@ -15,6 +15,9 @@ class ReadConfig:
         If the path does not point to a valid file, the empty string is returned
         If the path fails to read, an empty string is returned
         """
+        if self._path is None:
+            raise RuntimeError("Cannot call read() with invalid path")
+
         try:
             src = open(self._path, mode="r")
         except OSError as e:

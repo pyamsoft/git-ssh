@@ -8,7 +8,7 @@ from .errors.expected import ExpectedError
 from .logger.logger import Logger
 from .config.read import ReadConfig
 from .config.remove import RemoveConfig
-from .config.write import (WriteConfig, WriteSource)
+from .config.write import WriteConfig
 
 
 class GitSsh:
@@ -79,7 +79,7 @@ class GitSsh:
     def _parse_create_string(create_string, config_dir):
         if not create_string:
             Logger.d("No create_string passed, empty WriteConfig")
-            return WriteConfig.empty()
+            return WriteConfig("", "", "")
 
         split_create = create_string.split(":")
         if len(split_create) != 2:
@@ -89,7 +89,7 @@ class GitSsh:
         path = GitSsh._version_path(config_dir, name)
         Logger.d("Create string -- name: {}, path: {}, key: {}".format(
             name, path, key))
-        return WriteConfig(WriteSource(name, path, key))
+        return WriteConfig(name, path, key)
 
     @staticmethod
     def _parse_remove(remove_config, config_dir):
