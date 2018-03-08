@@ -6,10 +6,7 @@ from ..logger.logger import Logger
 class ReadConfig:
 
     def __init__(self, path):
-        """Initialize a ReadConfig object
-
-        For empty Config objects, use the static empty() function
-        """
+        """Initialize a ReadConfig object"""
         self._path = path
 
     def read(self):

@@ -7,7 +7,7 @@ from .config.config import Config
 from .errors.expected import ExpectedError
 from .logger.logger import Logger
 from .config.read import ReadConfig
-from .config.remove import (RemoveConfig, RemoveSource)
+from .config.remove import RemoveConfig
 from .config.write import (WriteConfig, WriteSource)
 
 
@@ -95,12 +95,12 @@ class GitSsh:
     def _parse_remove(remove_config, config_dir):
         if not remove_config:
             Logger.d("No remove_config passed, empty RemoveConfig")
-            return RemoveConfig.empty()
+            return RemoveConfig("", "")
 
         path = GitSsh._version_path(config_dir, remove_config)
         Logger.d("Remove config -- name: {}, path: {}".format(
             remove_config, path))
-        return RemoveConfig(RemoveSource(remove_config, path))
+        return RemoveConfig(remove_config, path)
 
     @staticmethod
     def _list_all_configs(config_dir):
