@@ -12,36 +12,24 @@ class Logger:
         raise NotImplementedError("No instances of Logger allowed")
 
     @staticmethod
-    def log(message, *args):
+    def log(message, *args, **kwargs):
         """Log a message to stdout without needing debug mode"""
-        if args:
-            print("{}".format(message), args, file=sys.stdout)
-        else:
-            print("{}".format(message), file=sys.stdout)
+        print("{}".format(message), *args, **kwargs, file=sys.stdout)
 
     @staticmethod
-    def d(message, *args):
+    def d(message, *args, **kwargs):
         """Log a message to stdout if debug mode is on"""
         if Logger.enabled:
-            if args:
-                print("DEBUG  {}".format(message), args, file=sys.stderr)
-            else:
-                print("DEBUG  {}".format(message), file=sys.stderr)
+            print("DEBUG  {}".format(message), *args, **kwargs, file=sys.stderr)
 
     @staticmethod
-    def e(message, *args):
+    def e(message, *args, **kwargs):
         """Log an error message to stderr if debug mode is on"""
         if Logger.enabled:
-            if args:
-                print("ERROR  {}".format(message), args, file=sys.stderr)
-            else:
-                print("ERROR  {}".format(message), file=sys.stderr)
+            print("ERROR  {}".format(message), *args, **kwargs, file=sys.stderr)
 
     @staticmethod
-    def fatal(message, *args):
+    def fatal(message, *args, **kwargs):
         """Log an error message to stderr and exit"""
-        if args:
-            print("FATAL  {}".format(message), args, file=sys.stderr)
-        else:
-            print("FATAL  {}".format(message), file=sys.stderr)
+        print("FATAL  {}".format(message), *args, **kwargs, file=sys.stderr)
         sys.exit(1)

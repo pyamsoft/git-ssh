@@ -4,39 +4,11 @@ from ..logger.logger import Logger
 
 
 class ReadConfig:
-    @staticmethod
-    def empty():
-        """Returns an empty ReadConfig object
 
-        An empty ReadConfig can be used in the place of None but contains
-        invalid data and should not be used as an actual data source.
-        """
-        return ReadConfig(EmptyReadSource())
-
-    def __init__(self, source):
+    def __init__(self, path):
         """Initialize a ReadConfig object
 
         For empty Config objects, use the static empty() function
-        """
-        self._source = source
-
-    def read(self):
-        """Read content from the ConfigSource and return it to the caller"""
-        return self._source.read()
-
-
-class EmptyReadSource:
-    def read(self):
-        Logger.d("EmptyReadSource.read() is a no-op")
-        return ""
-
-
-class ReadSource:
-    def __init__(self, path):
-        """Create a new ReadSource object
-
-        Path can be absolute or relative depending on how the caller wishes
-        to use the source
         """
         self._path = path
 
@@ -51,11 +23,10 @@ class ReadSource:
         except OSError as e:
             Logger.e("Cannot read content from path: {}".format(self._path))
             Logger.e(e)
-            return ""
+            yield ""
         else:
             with src:
-                content = src.read()
-                if content is None:
-                    return ""
-                else:
-                    return content
+                line = src.readline()
+                while line:
+                    yield line
+                    line = src.readline()

@@ -6,7 +6,7 @@ from .constants import PathConstants
 from .config.config import Config
 from .errors.expected import ExpectedError
 from .logger.logger import Logger
-from .config.read import (ReadConfig, ReadSource)
+from .config.read import ReadConfig
 from .config.remove import (RemoveConfig, RemoveSource)
 from .config.write import (WriteConfig, WriteSource)
 
@@ -110,13 +110,14 @@ class GitSsh:
             abspath = GitSsh._abs_path(config_dir, config_file)
             if os.path.isfile(abspath) and \
                     abspath.endswith("".format(GitSsh.CONFIG_VERSION)):
-                read_config = ReadConfig(ReadSource(abspath))
+                read_config = ReadConfig(abspath)
+                counter += 1
+                Logger.log("[{}] ({})".format(config_file, abspath))
 
-                content = read_config.read()
-                if content:
-                    counter += 1
-                    Logger.log("[{}] ({})".format(config_file, abspath))
-                    Logger.log(content)
+                Logger.log("")
+                for line in read_config.read():
+                    Logger.log("    ", line, end="")
+                Logger.log("")
 
         Logger.log("Total config count: {}".format(counter))
 
