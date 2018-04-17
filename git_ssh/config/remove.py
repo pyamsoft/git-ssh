@@ -23,11 +23,9 @@ class RemoveConfig:
         try:
             os.remove(self._path)
         except Exception as e:
-            Logger.e(
-                "Unable to remove: {} at {}".format(self._name, self._path))
+            Logger.e(f"Unable to remove: '{self._name}' at '{self._path}'")
             Logger.e(e)
             return False
         else:
-            Logger.log(
-                "Config removed: {} at {}".format(self._name, self._path))
+            Logger.log(f"Config removed: '{self._name}' at '{self._path}'")
             return True

@@ -55,14 +55,13 @@ def _initialize_parser():
         action="store",
         dest="git_path",
         metavar="PATH",
-        help="Path to Git binary (defaults to {})".format(
-            PathConstants.GIT_PATH))
+        help=f"Path to Git binary (defaults to {PathConstants.GIT_PATH})")
     parser.add_argument(
         "--ssh-help", action="help", help="Display this help and exit")
     parser.add_argument(
         "--ssh-version",
         action="version",
-        version="%(prog)s {}".format(__version__),
+        version=f"%(prog)s {__version__}",
         help="Display the version and exit")
     parser.add_argument(
         "--ssh-debug",
