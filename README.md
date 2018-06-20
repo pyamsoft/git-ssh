@@ -80,6 +80,28 @@ You can call the command as follows:
 
 ```
 
+```
+usage: git-ssh [--ssh CONFIG] [--config-dir DIRECTORY]
+               [--create-config NAME:SSH_KEY_PATH] [--remove-config NAME]
+               [--ssh-opts OPTION STRING] [--list-configs] [--git-path PATH]
+               [--ssh-help] [--ssh-version] [--ssh-debug]
+
+optional arguments:
+  --ssh CONFIG          Name identified of a config file in the ${config_dir}
+  --config-dir DIRECTORY
+                        Directory to store and search for config files
+  --create-config NAME:SSH_KEY_PATH
+                        Create a new ssh config using NAME:SSH_KEY_PATH
+  --remove-config NAME  Remove an existing config by NAME
+  --ssh-opts OPTION STRING
+                        Comma separated string of SSH options
+  --list-configs        List all configs found in ${config_dir}
+  --git-path PATH       Path to Git binary (defaults to /usr/bin/git)
+  --ssh-help            Display this help and exit
+  --ssh-version         Display the version and exit
+  --ssh-debug           Turn on debug logging
+```
+
 ## Questions
 
 Questions or issues should be either posted in the issue section of this  
