@@ -1,0 +1,66 @@
+# The GPLv2 License
+#
+#   Copyright (C) 2017  Peter Kenji Yamanaka
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program; if not, write to the Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+_git_ssh()
+{
+  # Make sure the original git completion file exists
+  local git_completion="/usr/share/bash-completion/completions/git"
+  if [ ! -e "${git_completion}" ] || [ ! -r "${git_completion}" ]; then
+    # Maybe its in the same directory as we are?
+    git_completion="./git"
+    # Try again
+    if [ ! -e "${git_completion}" ] || [ ! -r "${git_completion}" ]; then
+      # Nope.
+      return
+    fi
+  fi
+
+  # Source git completions
+  # shellcheck disable=SC1090
+  . "${git_completion}"
+
+  local cur prev normal_git_options
+
+  # Get options
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  # Remove our own 'ssh' option from the list of git options
+  normal_git_options="$(__git_list_porcelain_commands | sed 's/ssh//')"
+
+  # As long as we have found at least some options, show them
+  if [ -n "${normal_git_options}" ]; then
+    # If the command held by $prev is either 'git-ssh' or 'git ssh'
+    # we can at least complete all of the various git commands
+    #
+    # Otherwise, we can't do anything so fall back to the default.
+    if [ "${prev}" = "git-ssh" ] || [ "${prev}" = "ssh" ]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=( $(compgen -W "${normal_git_options}" -- "${cur}") )
+    else
+      # If its not a command we know how to do... what should we do?
+      # For now I guess we fall back to the bash_completion default
+      # of listing out files and directories.
+      _filedir
+    fi
+  fi
+}
+
+# NOTE: If you call this like 'git ssh', for some reason, these completions
+#       will only run after calling 'git-ssh' at least once. Weird.
+complete -F _git_ssh git-ssh
