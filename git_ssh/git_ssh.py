@@ -46,26 +46,19 @@ class GitSsh:
         return Config.empty()
 
     @staticmethod
-    def _find_config_dir(arg):
+    def _find_config_dir():
         """Find the config directory either from arguments or environment"""
         config_dir = None
-        if arg:
-            config_dir = arg
-            Logger.d(f"Config dir from argument: {config_dir}")
+        try:
+            xdg_env = os.environ[GitSsh.XDG_CONFIG]
+            if xdg_env:
+                config_dir = f"{xdg_env}/git-ssh"
+                Logger.d(f"Config dir from {GitSsh.XDG_CONFIG}: {config_dir}")
+        except KeyError:
+            Logger.e(f"Error getting config dir from {GitSsh.XDG_CONFIG}")
 
-        # Or from environment
-        if not config_dir:
-            try:
-                xdg_env = os.environ[GitSsh.XDG_CONFIG]
-                if xdg_env:
-                    config_dir = f"{xdg_env}/git-ssh"
-                    Logger.d(f"Config dir from {GitSsh.XDG_CONFIG}: "
-                             f"{config_dir}")
-            except KeyError:
-                Logger.e(f"Error getting config dir from {GitSsh.XDG_CONFIG}")
-
-                # Set to nothing so it will be handled by next if
-                config_dir = None
+            # Set to nothing so it will be handled by next if
+            config_dir = None
 
         # Or from default
         if not config_dir:
@@ -129,7 +122,7 @@ class GitSsh:
 
     def _handle_wrapper_args(self, wrapper_args):
         """Parse the wrapper specific arguments into correct flags"""
-        config_dir = self._find_config_dir(wrapper_args.config_dir)
+        config_dir = self._find_config_dir()
 
         # Make the config dir
         try:

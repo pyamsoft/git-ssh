@@ -16,51 +16,93 @@
 #   with this program; if not, write to the Free Software Foundation, Inc.,
 #   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+__fallback()
+{
+  # If its not a command we know how to do... what should we do?
+  # For now I guess we fall back to the bash_completion default
+  # of listing out files and directories.
+  _filedir
+}
+
 _git_ssh()
 {
-  # Make sure the original git completion file exists
-  local git_completion="/usr/share/bash-completion/completions/git"
-  if [ ! -e "${git_completion}" ] || [ ! -r "${git_completion}" ]; then
-    # Maybe its in the same directory as we are?
-    git_completion="./git"
-    # Try again
-    if [ ! -e "${git_completion}" ] || [ ! -r "${git_completion}" ]; then
-      # Nope.
-      return
-    fi
-  fi
-
-  # Source git completions
-  # shellcheck disable=SC1090
-  . "${git_completion}"
-
-  local cur prev normal_git_options
-
-  # Get options
+  local cur
+  local prev
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  # Remove our own 'ssh' option from the list of git options
-  normal_git_options="$(__git_list_porcelain_commands | sed 's/ssh//')"
+  local git_options
+  local git_ssh_options
+  git_options="$(git --list-cmds=builtins)"
+  git_ssh_options="\
+    --ssh \
+    --create-config \
+    --remove-config \
+    --list-configs \
+    --ssh-opts \
+    --git-path \
+    --ssh-help \
+    --ssh-version \
+    --ssh-debug"
 
-  # As long as we have found at least some options, show them
-  if [ -n "${normal_git_options}" ]; then
-    # If the command held by $prev is either 'git-ssh' or 'git ssh'
-    # we can at least complete all of the various git commands
-    #
-    # Otherwise, we can't do anything so fall back to the default.
-    if [ "${prev}" = "git-ssh" ] || [ "${prev}" = "ssh" ]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=( $(compgen -W "${normal_git_options}" -- "${cur}") )
-    else
-      # If its not a command we know how to do... what should we do?
-      # For now I guess we fall back to the bash_completion default
-      # of listing out files and directories.
-      _filedir
-    fi
+  local git_ssh_configs
+  local git_config_dir
+  git_config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/git-ssh"
+  if [ -d "${git_config_dir}" ]; then
+    git_ssh_configs="$(find "${git_config_dir}" \
+      -name '*.2' \
+      -exec basename {} \;)"
+  else
+    git_ssh_configs=""
   fi
+
+  case "${cur}" in
+    # Suggest git-ssh options
+    --*)
+      # shellcheck disable=SC2207
+      COMPREPLY=( $(compgen -W "${git_ssh_options}" -- "${cur}") )
+      ;;
+    *)
+      # If the command held by $prev is either 'git-ssh' or 'git ssh'
+      # we can at least complete all of the various git commands
+      #
+      # Otherwise, we can't do anything so fall back to the default.
+      case "${prev}" in
+        --ssh-help|--ssh-version|--list-configs)
+          # These are exiting options, don't suggest anything else since
+          # it will not take effect
+          ;;
+        --ssh|--remove-config)
+          # Complete if we have configs
+          if [ -n "${git_ssh_configs}" ]; then
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "${git_ssh_configs}" -- "${cur}") )
+          else
+            __fallback
+          fi
+          ;;
+        *)
+          local using_git
+          using_git=0
+          for cmd in ${git_options}; do
+            if [ "${prev}" = "${cmd}" ]; then
+              using_git=1
+              break
+            fi
+          done
+
+          # If we are using git, don't suggest git commands
+          if [ "${using_git}" -eq 1 ]; then
+          __fallback
+          else
+            # Otherwise suggest git commands
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "${git_options}" -- "${cur}") )
+          fi
+          ;;
+      esac
+      ;;
+  esac
 }
 
-# NOTE: If you call this like 'git ssh', for some reason, these completions
-#       will only run after calling 'git-ssh' at least once. Weird.
 complete -F _git_ssh git-ssh

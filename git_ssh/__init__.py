@@ -21,12 +21,6 @@ def _initialize_parser():
         metavar="CONFIG",
         help="Name identified of a config file in the ${config_dir}")
     parser.add_argument(
-        "--config-dir",
-        action="store",
-        dest="config_dir",
-        metavar="DIRECTORY",
-        help="Directory to store and search for config files")
-    parser.add_argument(
         "--create-config",
         action="store",
         dest="create_string",

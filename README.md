@@ -45,11 +45,9 @@ couple of options preset. The config files apply by default to all hosts and
 have a specific `IdentityFile` noted. The `IdentitiesOnly` option is on,  
 meaning that only the `IdentityFile` specified can be used. One can override  
 these settings via the --ssh-args command line option, or by editing the  
-generated config file directly (which are just plain SSH config files).
+generated config file directly.
 
-CONFIG files are by default searched for in the
-`${config_dir}` location, which defaults to `${XDG_CONFIG_HOME}/git-ssh`  
-This directory is not created by default.
+CONFIG files are by default searched for in `${XDG_CONFIG_HOME}/git-ssh`  
 
 ## Usability
 
@@ -93,8 +91,6 @@ usage: git-ssh [--ssh CONFIG] [--config-dir DIRECTORY]
 
 optional arguments:
   --ssh CONFIG          Name identified of a config file in the ${config_dir}
-  --config-dir DIRECTORY
-                        Directory to store and search for config files
   --create-config NAME:SSH_KEY_PATH
                         Create a new ssh config using NAME:SSH_KEY_PATH
   --remove-config NAME  Remove an existing config by NAME
