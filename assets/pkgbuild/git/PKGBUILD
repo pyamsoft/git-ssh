@@ -8,7 +8,7 @@ pkgname=git-ssh-git
 # shellcheck disable=SC2034
 pkgdesc="A wrapper around git to work with multiple SSH keys"
 # shellcheck disable=SC2034
-pkgver=r193.2cdb271
+pkgver=r194.7acaaa9
 # shellcheck disable=SC2034
 pkgrel=1
 # shellcheck disable=SC2034
@@ -65,7 +65,7 @@ package() {
   install -Dm 644 LICENSE "${pkgdir}/usr/share/licenses/${_gitname}/LICENSE"
 
   # Install shell completion
-  shell_target="${pkgdir}/usr/share/bash-completion/completions/git-ssh"
+  shell_target="${pkgdir}/usr/share/bash-completion/completions/${_gitname}"
   mkdir -p "$(dirname "${shell_target}")"
   install -Dm 644 "res/shell/bash/bash_completion" "${shell_target}"
 }
