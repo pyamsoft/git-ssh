@@ -19,7 +19,7 @@ def _initialize_parser():
         action="store",
         dest="ssh",
         metavar="CONFIG",
-        help="Name identified of a config file in the ${config_dir}")
+        help="Name of a config file in the config directory")
     parser.add_argument(
         "--create-config",
         action="store",
@@ -43,7 +43,7 @@ def _initialize_parser():
         action="store_const",
         dest="list",
         const=True,
-        help="List all configs found in ${config_dir}")
+        help="List all configs found in the config directory")
     parser.add_argument(
         "--git-path",
         action="store",

@@ -17,10 +17,6 @@ The script currently handles the following option(s):
   A comma separated list of options to pass to the invocation of ssh. It is  
   recommended that this list of options be surrounded by double quotes.
 
-  --config-dir DIR
-
-  The path to the directory where configs are stored.
-
   --create-config NAME:PATH
 
   Create a config called NAME with the path PATH.  
@@ -79,24 +75,21 @@ You can call the command as follows:
 
 ```
 
-Note though that the `git` shell autocompletion will not work once you have  
-typed the `ssh` argument as it is not supported natively by `git` and the  
-`git-ssh` project currently does not ship a shell completion file.
-
+### Usage and Options
 ```
-usage: git-ssh [--ssh CONFIG] [--config-dir DIRECTORY]
-               [--create-config NAME:SSH_KEY_PATH] [--remove-config NAME]
-               [--ssh-opts OPTION STRING] [--list-configs] [--git-path PATH]
-               [--ssh-help] [--ssh-version] [--ssh-debug]
+usage: git-ssh [--ssh CONFIG] [--create-config NAME:SSH_KEY_PATH]
+               [--remove-config NAME] [--ssh-opts OPTION STRING]
+               [--list-configs] [--git-path PATH] [--ssh-help] [--ssh-version]
+               [--ssh-debug]
 
 optional arguments:
-  --ssh CONFIG          Name identified of a config file in the ${config_dir}
+  --ssh CONFIG          Name of a config file in the config directory
   --create-config NAME:SSH_KEY_PATH
                         Create a new ssh config using NAME:SSH_KEY_PATH
   --remove-config NAME  Remove an existing config by NAME
   --ssh-opts OPTION STRING
                         Comma separated string of SSH options
-  --list-configs        List all configs found in ${config_dir}
+  --list-configs        List all configs found in the config directory
   --git-path PATH       Path to Git binary (defaults to /usr/bin/git)
   --ssh-help            Display this help and exit
   --ssh-version         Display the version and exit
