@@ -98,8 +98,11 @@ def main():
     # Parse the options before starting setup
     git_path, wrapper_args, plain_args = _parse_options()
 
+    wrapper = None
     try:
         wrapper = GitSsh(Git(git_path), wrapper_args, plain_args)
-        wrapper.call()
     except ExpectedError as e:
         Logger.fatal(e)
+
+    if wrapper:
+        wrapper.call()
