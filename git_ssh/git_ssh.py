@@ -62,7 +62,7 @@ class GitSsh:
 
         # Or from default
         if not config_dir:
-            config_dir = os.path.expanduser(PathConstants.DEFAULT_CONFIG_DIR)
+            config_dir = os.path.expanduser(PathConstants.CONFIG_DIR)
             Logger.d(f"Config dir from fallback: {config_dir}")
 
         return config_dir
