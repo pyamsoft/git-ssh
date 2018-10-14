@@ -1,37 +1,26 @@
 # git-ssh
 An ssh-key selection wrapper for git
 
-## Usage  
-### Options
-The script currently handles the following option(s):  
+
+### Usage and Options
 ```
+usage: git-ssh [--ssh CONFIG] [--create-config NAME:SSH_KEY_PATH]
+               [--remove-config NAME] [--ssh-opts OPTION STRING]
+               [--list-configs] [--git-path PATH] [--ssh-help] [--ssh-version]
+               [--ssh-debug]
 
-  --ssh CONFIG
-
-  The name identifier of a config file in the ${config_dir}  
-  The contents expected in the CONFIG file are listed in the CONFIGURATION  
-  section  
-
-  --ssh-opts COMMA-SEPARATED-OPTIONS
-
-  A comma separated list of options to pass to the invocation of ssh. It is  
-  recommended that this list of options be surrounded by double quotes.
-
-  --create-config NAME:PATH
-
-  Create a config called NAME with the path PATH.  
-  Does not stop operation following completion  
-
-  --remove-config NAME
-
-  Remove the config specified by NAME.  
-  Does not stop operation following completion  
-
-  --list-configs
-
-  Lists the contents of the ${config_dir}  
-  Stops operation following completion  
-
+optional arguments:
+  --ssh CONFIG          Name of a config file in the config directory
+  --create-config NAME:SSH_KEY_PATH
+                        Create a new ssh config using NAME:SSH_KEY_PATH
+  --remove-config NAME  Remove an existing config by NAME
+  --ssh-opts OPTION STRING
+                        Comma separated string of SSH options
+  --list-configs        List all configs found in the config directory
+  --git-path PATH       Path to Git binary (defaults to /usr/bin/git)
+  --ssh-help            Display this help and exit
+  --ssh-version         Display the version and exit
+  --ssh-debug           Turn on debug logging
 ```
 
 ### Configuration
@@ -74,32 +63,6 @@ You can call the command as follows:
  $ git ssh --ssh github push -u origin master
 
 ```
-
-### Usage and Options
-```
-usage: git-ssh [--ssh CONFIG] [--create-config NAME:SSH_KEY_PATH]
-               [--remove-config NAME] [--ssh-opts OPTION STRING]
-               [--list-configs] [--git-path PATH] [--ssh-help] [--ssh-version]
-               [--ssh-debug]
-
-optional arguments:
-  --ssh CONFIG          Name of a config file in the config directory
-  --create-config NAME:SSH_KEY_PATH
-                        Create a new ssh config using NAME:SSH_KEY_PATH
-  --remove-config NAME  Remove an existing config by NAME
-  --ssh-opts OPTION STRING
-                        Comma separated string of SSH options
-  --list-configs        List all configs found in the config directory
-  --git-path PATH       Path to Git binary (defaults to /usr/bin/git)
-  --ssh-help            Display this help and exit
-  --ssh-version         Display the version and exit
-  --ssh-debug           Turn on debug logging
-```
-
-## Questions
-
-Questions or issues should be either posted in the issue section of this  
-repository, or directed by email to pyamsoft @ pyam(dot)soft(at)gmail(dot)com
 
 ## Issues
 
