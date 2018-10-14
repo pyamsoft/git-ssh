@@ -33,7 +33,7 @@ _git_ssh()
 
   local git_options
   local git_ssh_options
-  git_options="$(git --list-cmds=builtins)"
+  git_options="$(git --list-cmds=builtins 2>/dev/null || echo 'add am apply archive bisect blame branch bundle checkout cherry cherry-pick citool clean clone commit config describe diff difftool fetch format-patch fsck gc gitk grep gui help init instaweb log merge mergetool mv notes pull push range-diff rebase reflog remote repack replace request-pull reset revert rm send-email shortlog show show-branch ssh stage stash status submodule tag whatchanged worktree')"
   git_ssh_options="\
     --ssh \
     --create-config \
