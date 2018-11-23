@@ -21,7 +21,7 @@ NAME?=git-ssh
 PREFIX?=/usr
 MAKEFLAGS:= $(MAKEFLAGS) --no-print-directory
 
-SCRIPT_INSTALL_SRC="git-ssh"
+SCRIPT_INSTALL_SRC="git_ssh"
 DOC_INSTALL_SRC="README.md"
 LICENSE_INSTALL_SRC="LICENSE"
 COMPLETION_INSTALL_SRC="res/shell/bash/bash_completion"
@@ -30,23 +30,17 @@ DOC_INSTALL_TARGET="$(DESTDIR)/$(PREFIX)/share/doc/$(NAME)/README.md"
 LICENSE_INSTALL_TARGET="$(DESTDIR)/$(PREFIX)/share/doc/$(NAME)/LICENSE"
 COMPLETION_INSTALL_TARGET="$(DESTDIR)/$(PREFIX)/share/bash-completion/completions/$(NAME)"
 
-.PHONY: all install
+.PHONY: all install uninstall
 
 all:
 	@echo "Targets"
-	@echo " install"
+	@echo " install uninstall"
 	@echo $(TARGET)
 
 install:
 	@echo "Installing..."
-	@echo "  INSTALL  $(SCRIPT_INSTALL_TARGET)"
-	@python3 setup.py install --root="$(DESTDIR)" --optimize=1
-	@echo "  INSTALL  $(DOC_INSTALL_TARGET)"
-	@mkdir -p "$(shell dirname $(DOC_INSTALL_TARGET))"
-	@install -Dm 644 "$(DOC_INSTALL_SRC)" "$(DOC_INSTALL_TARGET)"
-	@echo "  INSTALL  $(LICENSE_INSTALL_TARGET)"
-	@mkdir -p "$(shell dirname $(LICENSE_INSTALL_TARGET))"
-	@install -Dm 644 "$(LICENSE_INSTALL_SRC)" "$(LICENSE_INSTALL_TARGET)"
-	@echo "  INSTALL  $(COMPLETION_INSTALL_TARGET)"
-	@mkdir -p "$(shell dirname $(COMPLETION_INSTALL_TARGET))"
-	@install -Dm 644 "$(COMPLETION_INSTALL_SRC)" "$(COMPLETION_INSTALL_TARGET)"
+	@./install.sh install
+
+uninstall:
+	@echo "Uninstalling..."
+	@./install.sh uninstall
