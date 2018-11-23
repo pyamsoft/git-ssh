@@ -87,7 +87,7 @@ class Git:
                 _env=ssh_env,
                 _in=sys.stdin,
                 _out=sys.stdout,
-                _err=sys.stderr
+                _err=sys.stderr,
                 _tty_in=True,
                 _tty_out=False
             )
