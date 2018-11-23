@@ -18,6 +18,8 @@
 
 .PHONY: all install uninstall
 
+PREFIX?=/usr/local
+
 all:
 	@echo "Targets"
 	@echo " install uninstall"
