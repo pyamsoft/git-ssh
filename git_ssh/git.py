@@ -58,8 +58,7 @@ class Git:
                 _in=sys.stdin,
                 _out=sys.stdout,
                 _err=sys.stderr,
-                _tty_in=True,
-                _tty_out=False
+                _tty_in=True
             )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
@@ -88,8 +87,7 @@ class Git:
                 _in=sys.stdin,
                 _out=sys.stdout,
                 _err=sys.stderr,
-                _tty_in=True,
-                _tty_out=False
+                _tty_in=True
             )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
