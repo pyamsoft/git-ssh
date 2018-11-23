@@ -50,7 +50,7 @@ class Git:
     def call(self, args):
         """A normal call to the git binary, pass arguments through"""
         Logger.d("Calling normal git without ssh wrapped environment")
-        Logger.d(f"Git path: {self._git_path}")
+        Logger.d(f"Git path: {self._git_path} {args}")
         try:
             call_git = sh.Command(self._git_path)
             call_git(args, _fg=True, _tty_in=True, _tty_out=False)
@@ -65,7 +65,7 @@ class Git:
 
         Logger.d(f"Calling git with ssh wrapped environment: "
                  f"{ssh_config.name()}")
-        Logger.d(f"Git path: {self._git_path}")
+        Logger.d(f"Git path: {self._git_path} {git_args}")
 
         ssh_env = os.environ.copy()
         args = "".join(ssh_args)
