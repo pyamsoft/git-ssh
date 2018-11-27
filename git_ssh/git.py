@@ -55,10 +55,9 @@ class Git:
             call_git = sh.Command(self._git_path)
             call_git(
                 args,
-                _in=sys.stdin,
-                _out=sys.stdout,
-                _err=sys.stderr,
-                _tty_in=True
+                _fg=True,
+                _tty_in=True,
+                _tty_out=False
             )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
@@ -84,10 +83,9 @@ class Git:
             call_git(
                 git_args,
                 _env=ssh_env,
-                _in=sys.stdin,
-                _out=sys.stdout,
-                _err=sys.stderr,
-                _tty_in=True
+                _fg=True,
+                _tty_in=True,
+                _tty_out=False
             )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
