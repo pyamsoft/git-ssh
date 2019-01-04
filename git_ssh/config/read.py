@@ -12,7 +12,7 @@ class ReadConfig:
     def read(self):
         """Read all content from the file located at path and return it
 
-        If the path does not point to a valid file, the empty string is returned
+        If the path does not point to a valid file, an empty string is returned
         If the path fails to read, an empty string is returned
         """
         if self._path is None:
