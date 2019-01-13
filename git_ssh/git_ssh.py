@@ -33,7 +33,6 @@ from .config.write import WriteConfig
 class GitSsh:
     """Current config version"""
     CONFIG_VERSION = 2
-    XDG_CONFIG = "XDG_CONFIG_HOME"
 
     @staticmethod
     def _abs_path(directory, file):
@@ -69,12 +68,12 @@ class GitSsh:
         """Find the config directory either from arguments or environment"""
         config_dir = None
         try:
-            xdg_env = os.environ[GitSsh.XDG_CONFIG]
+            xdg_env = os.environ[PathConstants.XDG_CONFIG]
             if xdg_env:
                 config_dir = f"{xdg_env}/git-ssh"
-                Logger.d(f"Config dir from {GitSsh.XDG_CONFIG}: {config_dir}")
+                Logger.d(f"Config dir: {PathConstants.XDG_CONFIG}: {config_dir}")
         except KeyError:
-            Logger.e(f"Error getting config dir from {GitSsh.XDG_CONFIG}")
+            Logger.e(f"Error getting config dir from {PathConstants.XDG_CONFIG}")
 
             # Set to nothing so it will be handled by next if
             config_dir = None
