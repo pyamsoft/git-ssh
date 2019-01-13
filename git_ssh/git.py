@@ -41,24 +41,28 @@ class Git:
     @staticmethod
     def _run(args, env=None):
         """Call subprocess command"""
-        if hasattr(subprocess, "run"):
-            Logger.d("subprocess.run exists, using it")
-            subprocess.run(
-                args,
-                env=env,
-                stdin=sys.stdin,
-                stdout=sys.stdout.buffer,
-                stderr=sys.stderr.buffer
-            )
-        else:
-            Logger.d("subprocess.run does not exist, fallback to call")
-            subprocess.call(
-                args,
-                env=env,
-                stdin=sys.stdin,
-                stdout=sys.stdout.buffer,
-                stderr=sys.stderr.buffer
-            )
+        try:
+            if hasattr(subprocess, "run"):
+                Logger.d("subprocess.run exists, using it")
+                subprocess.run(
+                    args,
+                    env=env,
+                    stdin=sys.stdin,
+                    stdout=sys.stdout.buffer,
+                    stderr=sys.stderr.buffer
+                )
+            else:
+                Logger.d("subprocess.run does not exist, fallback to call")
+                subprocess.call(
+                    args,
+                    env=env,
+                    stdin=sys.stdin,
+                    stdout=sys.stdout.buffer,
+                    stderr=sys.stderr.buffer
+                )
+        except KeyboardInterrupt as e:
+            Logger.e("KeyboardInterrupt triggered, stopping _run")
+            Logger.e(e)
 
     def call(self, args):
         """A normal call to the git binary, pass arguments through"""
