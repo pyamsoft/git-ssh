@@ -20,7 +20,7 @@
 
 
 import os
-import sh
+import subprocess
 import sys
 
 from .errors.expected import ExpectedError
@@ -31,34 +31,6 @@ class Git:
     """The env var for specifying an SSH command for Git"""
     SSH_COMMAND = "GIT_SSH_COMMAND"
 
-    @staticmethod
-    def _handle_git_exception_output(err):
-        """Handle the unique exit codes that git may output
-
-        When calling git without any arguments, it will print out its help
-        text and actually return 1 instead of a success code of 0.
-
-        When this happens, the 'sh' library prints out this long bunch of
-        garbage, when we really just want to print out Git's help text.
-
-        We eat the error stream in certain cases to make the Git output
-        through the wrapper stay 1 to 1 with actual Git.
-        """
-        output = []
-        if err.stdout:
-            # Git exits with 1 even when just displaying help
-            output.append(err.stdout.decode("utf-8"))
-
-        if err.stdout and err.stderr:
-            output.append("\n")
-
-        if err.stderr:
-            # But it may also handle an actual error
-            output.append(err.stderr.decode("utf-8"))
-
-        if output:
-            print("".join(output), end="", file=sys.stdout)
-
     def __init__(self, git_path):
         """Initialize a wrapper for the real Git binary"""
         if not os.path.exists(git_path):
@@ -66,30 +38,36 @@ class Git:
         else:
             self._git_path = git_path
 
+    def _run(self, args, env=None):
+        """Call subprocess command"""
+        if hasattr(subprocess, "run"):
+            Logger.d("subprocess.run exists, using it")
+            subprocess.run(
+                args,
+                env=env,
+                stdin=sys.stdin,
+                stdout=sys.stdout.buffer,
+                stderr=sys.stderr.buffer
+            )
+        else:
+            Logger.d("subprocess.run does not exist, fallback to call")
+            subprocess.call(
+                args,
+                env=env,
+                stdin=sys.stdin,
+                stdout=sys.stdout.buffer,
+                stderr=sys.stderr.buffer
+            )
+
     def call(self, args):
         """A normal call to the git binary, pass arguments through"""
         Logger.d("Calling normal git without ssh wrapped environment")
         Logger.d(f"Git path: {self._git_path} {args}")
-        try:
-            call_git = sh.Command(self._git_path)
 
-            # Old versions of the sh lib complain about blank argument lists
-            if args:
-                call_git(
-                    *args,
-                    _in=sys.stdin,
-                    _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer
-                )
-            else:
-                call_git(
-                    _in=sys.stdin,
-                    _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer
-                )
-        except sh.ErrorReturnCode as e:
-            Logger.e(e)
-            self._handle_git_exception_output(e)
+        full_args = [self._git_path]
+        if args:
+            full_args += args
+        self._run(full_args)
 
     def ssh_call(self, git_args, ssh_config, ssh_args):
         """An ssh wrapped call to the Git binary, set up for specific SSH"""
@@ -106,27 +84,10 @@ class Git:
 
         Logger.d(f"SSH env: {ssh_env[Git.SSH_COMMAND]}")
 
-        try:
-            call_git = sh.Command(self._git_path)
-            # Old versions of the sh lib complain about blank argument lists
-            if git_args:
-                call_git(
-                    *git_args,
-                    _env=ssh_env,
-                    _in=sys.stdin,
-                    _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer
-                )
-            else:
-                call_git(
-                    _env=ssh_env,
-                    _in=sys.stdin,
-                    _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer
-                )
-        except sh.ErrorReturnCode as e:
-            Logger.e(e)
-            self._handle_git_exception_output(e)
+        full_args = [self._git_path]
+        if git_args:
+            full_args += git_args
+        self._run(full_args, ssh_env)
 
 
 class GitError(ExpectedError):
