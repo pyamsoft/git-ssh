@@ -77,15 +77,15 @@ class Git:
             if args:
                 call_git(
                     *args,
+                    _in=sys.stdin,
                     _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer,
-                    _tty_in=True
+                    _err=sys.stderr.buffer
                 )
             else:
                 call_git(
+                    _in=sys.stdin,
                     _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer,
-                    _tty_in=True
+                    _err=sys.stderr.buffer
                 )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
@@ -113,16 +113,16 @@ class Git:
                 call_git(
                     *git_args,
                     _env=ssh_env,
+                    _in=sys.stdin,
                     _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer,
-                    _tty_in=True
+                    _err=sys.stderr.buffer
                 )
             else:
                 call_git(
                     _env=ssh_env,
+                    _in=sys.stdin,
                     _out=sys.stdout.buffer,
-                    _err=sys.stderr.buffer,
-                    _tty_in=True
+                    _err=sys.stderr.buffer
                 )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
