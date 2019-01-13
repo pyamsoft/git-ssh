@@ -38,7 +38,8 @@ class Git:
         else:
             self._git_path = git_path
 
-    def _run(self, args, env=None):
+    @staticmethod
+    def _run(args, env=None):
         """Call subprocess command"""
         if hasattr(subprocess, "run"):
             Logger.d("subprocess.run exists, using it")
