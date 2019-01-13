@@ -72,12 +72,21 @@ class Git:
         Logger.d(f"Git path: {self._git_path} {args}")
         try:
             call_git = sh.Command(self._git_path)
-            call_git(
-                args,
-                _fg=True,
-                _tty_in=True,
-                _tty_out=False
-            )
+
+            # Old versions of the sh lib complain about blank argument lists
+            if args:
+                call_git(
+                    *args,
+                    _fg=True,
+                    _tty_in=True,
+                    _tty_out=False
+                )
+            else:
+                call_git(
+                    _fg=True,
+                    _tty_in=True,
+                    _tty_out=False
+                )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
             self._handle_git_exception_output(e)
@@ -99,13 +108,22 @@ class Git:
 
         try:
             call_git = sh.Command(self._git_path)
-            call_git(
-                git_args,
-                _env=ssh_env,
-                _fg=True,
-                _tty_in=True,
-                _tty_out=False
-            )
+            # Old versions of the sh lib complain about blank argument lists
+            if git_args:
+                call_git(
+                    *git_args,
+                    _env=ssh_env,
+                    _fg=True,
+                    _tty_in=True,
+                    _tty_out=False
+                )
+            else:
+                call_git(
+                    _env=ssh_env,
+                    _fg=True,
+                    _tty_in=True,
+                    _tty_out=False
+                )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
             self._handle_git_exception_output(e)
