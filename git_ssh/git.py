@@ -78,14 +78,12 @@ class Git:
                 call_git(
                     *args,
                     _fg=True,
-                    _tty_in=True,
-                    _tty_out=False
+                    _tty_in=True
                 )
             else:
                 call_git(
                     _fg=True,
-                    _tty_in=True,
-                    _tty_out=False
+                    _tty_in=True
                 )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
@@ -114,15 +112,13 @@ class Git:
                     *git_args,
                     _env=ssh_env,
                     _fg=True,
-                    _tty_in=True,
-                    _tty_out=False
+                    _tty_in=True
                 )
             else:
                 call_git(
                     _env=ssh_env,
                     _fg=True,
-                    _tty_in=True,
-                    _tty_out=False
+                    _tty_in=True
                 )
         except sh.ErrorReturnCode as e:
             Logger.e(e)
