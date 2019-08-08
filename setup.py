@@ -17,7 +17,7 @@ DESCRIPTION = 'An ssh-key wrapper for git'
 URL = 'https://github.com/pyamsoft/git-ssh'
 EMAIL = 'pyam.soft@gmail.com'
 AUTHOR = 'pyamsoft'
-REQUIRES_PYTHON = '>=3.6.0'
+REQUIRES_PYTHON = '>=3.5.0'
 VERSION = None
 
 # What packages are required for this module to be executed?
@@ -101,7 +101,7 @@ setup(
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: Implementation :: CPython',
     ],
     # $ setup.py publish support.
