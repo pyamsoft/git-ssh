@@ -19,7 +19,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-class PathConstants:
+class Const:
     """The default path to the real git binary"""
     GIT_PATH = "/usr/bin/git"
 

@@ -21,7 +21,7 @@
 
 import os
 
-from .constants import PathConstants
+from .constants import Const
 from .config.config import Config
 from .errors.expected import ExpectedError
 from .logger.logger import Logger
@@ -37,28 +37,28 @@ class GitSsh:
     @staticmethod
     def _abs_path(directory, file):
         """Concats a directory and file path together to an absolute path"""
-        return f"{directory}/{file}"
+        return "{}/{}".format(directory, file)
 
     @staticmethod
     def _version_path(directory, file):
         """Concats a directory and file path together to an absolute path"""
-        return f"{directory}/{file}.{GitSsh.CONFIG_VERSION}"
+        return "{}/{}.{}".format(directory, file, GitSsh.CONFIG_VERSION)
 
     @staticmethod
     def _is_config(name, file):
         """Check if a given file matches the expected config"""
-        return f"{name}.{GitSsh.CONFIG_VERSION}" == file
+        return "{}.{}".format(name, GitSsh.CONFIG_VERSION) == file
 
     @staticmethod
     def _find_ssh_config(config_dir, name):
         """Find the correct Config file given a wanted name and directory"""
-        Logger.d(f"Find SSH config for: {name} in {config_dir}")
+        Logger.d("Find SSH config for: {} in {}".format(name, config_dir))
         for config_file in os.listdir(config_dir):
             abspath = GitSsh._abs_path(config_dir, config_file)
             if os.path.isfile(abspath):
-                Logger.d(f"Check config: {abspath}")
+                Logger.d("Check config: {}".format(abspath))
                 if GitSsh._is_config(name, config_file):
-                    Logger.d(f"Found config: {name} at {abspath}")
+                    Logger.d("Found config: {} at {}".format(name, abspath))
                     return Config(name, abspath)
 
         return Config.empty()
@@ -68,20 +68,24 @@ class GitSsh:
         """Find the config directory either from arguments or environment"""
         config_dir = None
         try:
-            xdg_env = os.environ[PathConstants.XDG_CONFIG]
+            xdg_env = os.environ[Const.XDG_CONFIG]
             if xdg_env:
-                config_dir = f"{xdg_env}/git-ssh"
-                Logger.d(f"Config dir: {PathConstants.XDG_CONFIG}: {config_dir}")
+                config_dir = "{}/git-ssh".format(xdg_env)
+                Logger.d("Config dir: {}: {}".format(
+                    Const.XDG_CONFIG, config_dir
+                ))
         except KeyError:
-            Logger.e(f"Error getting config dir from {PathConstants.XDG_CONFIG}")
+            Logger.e(
+                "Error getting config dir from {}".format(Const.XDG_CONFIG)
+            )
 
             # Set to nothing so it will be handled by next if
             config_dir = None
 
         # Or from default
         if not config_dir:
-            config_dir = os.path.expanduser(PathConstants.CONFIG_DIR)
-            Logger.d(f"Config dir from fallback: {config_dir}")
+            config_dir = os.path.expanduser(Const.CONFIG_DIR)
+            Logger.d("Config dir from fallback: {}".format(config_dir))
 
         return config_dir
 
@@ -97,7 +101,9 @@ class GitSsh:
 
         name, key = split_create
         path = GitSsh._version_path(config_dir, name)
-        Logger.d(f"Create string -- name: {name}, path: {path}, key: {key}")
+        Logger.d("Create string -- name: {}, path: {}, key: {}".format(
+            name, path, key
+        ))
         return WriteConfig(name, path, key)
 
     @staticmethod
@@ -107,12 +113,14 @@ class GitSsh:
             return RemoveConfig("", "")
 
         path = GitSsh._version_path(config_dir, remove_config)
-        Logger.d(f"Remove config -- name: {remove_config}, path: {path}")
+        Logger.d("Remove config -- name: {}, path: {}".format(
+            remove_config, path
+        ))
         return RemoveConfig(remove_config, path)
 
     @staticmethod
     def _list_all_configs(config_dir):
-        Logger.log(f"Listing all configs in: {config_dir}\n")
+        Logger.log("Listing all configs in: {}\n".format(config_dir))
         counter = 0
         for config_file in os.listdir(config_dir):
             abspath = GitSsh._abs_path(config_dir, config_file)
@@ -120,14 +128,14 @@ class GitSsh:
                     abspath.endswith(str(GitSsh.CONFIG_VERSION)):
                 read_config = ReadConfig(abspath)
                 counter += 1
-                Logger.log(f"[{config_file}] ({abspath})")
+                Logger.log("[{}] ({})".format(config_file, abspath))
 
                 Logger.log("")
                 for line in read_config.read():
                     Logger.log("    ", line, end="")
                 Logger.log("")
 
-        Logger.log(f"Total config count: {counter}")
+        Logger.log("Total config count: {}".format(counter))
 
     def __init__(self, git, wrapper_args, git_args):
         """Initialize GitSsh wrapper"""
@@ -164,7 +172,7 @@ class GitSsh:
         # Parse ssh options into list
         if wrapper_args.ssh_opts:
             for option in wrapper_args.ssh_opts.split(","):
-                self._ssh_options.append(f"-o {option} ")
+                self._ssh_options.append("-o {} ".format(option))
 
         if wrapper_args.list:
             GitSsh._list_all_configs(config_dir)
@@ -195,11 +203,11 @@ class NoSshConfigError(ExpectedError):
     def __init__(self, key):
         """No config found for requested name"""
         super(NoSshConfigError, self) \
-            .__init__(f"Could not find config matching key: {key}")
+            .__init__("Could not find config matching key: {}".format(key))
 
 
 class InvalidCreateStringError(ExpectedError):
     def __init__(self, string):
         """Invalid create string format, either too many args or too little"""
         super(InvalidCreateStringError, self) \
-            .__init__(f"Create string is invalid format: {string}")
+            .__init__("Create string is invalid format: {}".format(string))

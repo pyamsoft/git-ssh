@@ -40,7 +40,7 @@ class ReadConfig:
         try:
             src = open(self._path, mode="r")
         except OSError as e:
-            Logger.e(f"Cannot read content from path: '{self._path}'")
+            Logger.e("Cannot read content from path: '{}'".format(self._path))
             Logger.e(e)
             yield ""
         else:

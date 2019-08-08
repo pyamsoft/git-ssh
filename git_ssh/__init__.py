@@ -21,7 +21,7 @@
 
 import argparse
 
-from .constants import PathConstants
+from .constants import Const
 from .errors.expected import ExpectedError
 from .git_ssh import GitSsh
 from .git import Git
@@ -68,13 +68,13 @@ def _initialize_parser():
         action="store",
         dest="git_path",
         metavar="PATH",
-        help=f"Path to Git binary (defaults to {PathConstants.GIT_PATH})")
+        help="Path to Git binary (defaults to {})".format(Const.GIT_PATH))
     parser.add_argument(
         "--ssh-help", action="help", help="Display this help and exit")
     parser.add_argument(
         "--ssh-version",
         action="version",
-        version=f"%(prog)s {__version__}",
+        version="%(prog)s {}".format(__version__),
         help="Display the version and exit")
     parser.add_argument(
         "--ssh-debug",
@@ -107,7 +107,7 @@ def _parse_options():
     # Find git path if passed, else default to DEFAULT_GIT_PATH
     git_path = wrapper_args.git_path
     if not git_path:
-        git_path = PathConstants.GIT_PATH
+        git_path = Const.GIT_PATH
 
     return git_path, wrapper_args, plain_args
 

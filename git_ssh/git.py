@@ -67,7 +67,7 @@ class Git:
     def call(self, args):
         """A normal call to the git binary, pass arguments through"""
         Logger.d("Calling normal git without ssh wrapped environment")
-        Logger.d(f"Git path: {self._git_path} {args}")
+        Logger.d("Git path: {} {}".format(self._git_path, args))
 
         full_args = [self._git_path]
         if args:
@@ -79,15 +79,18 @@ class Git:
         if not ssh_config.name() or not ssh_config.path():
             raise BadConfigError(ssh_config)
 
-        Logger.d(f"Calling git with ssh wrapped environment: "
-                 f"{ssh_config.name()}")
-        Logger.d(f"Git path: {self._git_path} {git_args}")
+        Logger.d("Calling git with ssh wrapped environment: {}".format(
+            ssh_config.name()
+        ))
+        Logger.d("Git path: {} {}".format(self._git_path, git_args))
 
         ssh_env = os.environ.copy()
         args = "".join(ssh_args)
-        ssh_env[Git.SSH_COMMAND] = f"ssh -F '{ssh_config.path()}' {args} "
+        ssh_env[Git.SSH_COMMAND] = "ssh -F '{}' {} ".format(
+            ssh_config.path(), args
+        )
 
-        Logger.d(f"SSH env: {ssh_env[Git.SSH_COMMAND]}")
+        Logger.d("SSH env: {}".format(ssh_env[Git.SSH_COMMAND]))
 
         full_args = [self._git_path]
         if git_args:
@@ -99,12 +102,14 @@ class GitError(ExpectedError):
     def __init__(self, path):
         """Git not found"""
         super(GitError, self) \
-            .__init__(f"Git binary cannot be found at: {path}")
+            .__init__("Git binary cannot be found at: {}".format(path))
 
 
 class BadConfigError(ExpectedError):
     def __init__(self, config):
         """Invalid config, either name or path is bad"""
         super(BadConfigError, self) \
-            .__init__(f"Config is invalid: [name: {config.name()}, "
-                      f"path: {config.path()}]")
+            .__init__(
+            "Config is invalid: [name: {}, path: {}]".format(
+                config.name(), config.path()
+            ))
