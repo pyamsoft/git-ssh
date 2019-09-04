@@ -25,33 +25,33 @@ optional arguments:
 
 ### Configuration
 
-Configuration files are just plain ssh_config files that have, by default, a  
-couple of options preset. The config files apply by default to all hosts and  
-have a specific `IdentityFile` noted. The `IdentitiesOnly` option is on,  
-meaning that only the `IdentityFile` specified can be used. One can override  
-these settings via the --ssh-args command line option, or by editing the  
+Configuration files are just plain ssh_config files that have, by default, a
+couple of options preset. The config files apply by default to all hosts and
+have a specific `IdentityFile` noted. The `IdentitiesOnly` option is on,
+meaning that only the `IdentityFile` specified can be used. One can override
+these settings via the --ssh-args command line option, or by editing the
 generated config file directly.
 
-CONFIG files are by default searched for in `${XDG_CONFIG_HOME}/git-ssh`  
+CONFIG files are by default searched for in `${XDG_CONFIG_HOME}/git-ssh`
 
 ## Usability
 
-To make `git-ssh` more friendly to the `git` user, the following can be performed  
-in the shell to allow for shell completion among other nice things:  
+To make `git-ssh` more friendly to the `git` user, the following can be performed
+in the shell to allow for shell completion among other nice things:
 ```
-alias git="/path/to/git-ssh"  
+alias git="/path/to/git-ssh"
 ```
-This will make all calls to `git` resolve first to `git-ssh` in the interactive  
-shell. If you wish to take this a step further, you can create a symlink to  
-`git-ssh` in your path before git itself is resolved, and then any program  
-which expects `git` will now work with `git-ssh`.  
+This will make all calls to `git` resolve first to `git-ssh` in the interactive
+shell. If you wish to take this a step further, you can create a symlink to
+`git-ssh` in your path before git itself is resolved, and then any program
+which expects `git` will now work with `git-ssh`.
 
-*Note* that overriding the environment to resolve first to `git-ssh` when calling  
-`git` may pose a security risk in unforseen situations. This project does not  
-guarantee the safety or stability of the system in the event that the  
+*Note* that overriding the environment to resolve first to `git-ssh` when calling
+`git` may pose a security risk in unforseen situations. This project does not
+guarantee the safety or stability of the system in the event that the
 environment is overrideen to use `git-ssh` for all git related calls.
 
-If you do not want to replace the normal resolution for a call to `git` you  
+If you do not want to replace the normal resolution for a call to `git` you
 can instead call git with the following:  
 ```
 For example, say you wanted to do:
@@ -66,9 +66,9 @@ You can call the command as follows:
 
 ## Issues
 
-Check the issues page on GitHub for any notes about outstanding or existing  
-issues. If you encounter a problem with git-ssh of which no such  
-issue already exists please feel free to help the developer by creating an  
+Check the issues page on GitHub for any notes about outstanding or existing
+issues. If you encounter a problem with git-ssh of which no such
+issue already exists please feel free to help the developer by creating an
 issue ticket.
 
 ## License
