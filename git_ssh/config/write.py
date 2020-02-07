@@ -47,12 +47,12 @@ class WriteConfig:
 
         try:
             src = open(self._path, mode="w")
-        except OSError as e:
+        except OSError as err:
             Logger.e("Unable to write '{}'".format(self._path))
-            Logger.e(e)
+            Logger.e(err)
             return False
         else:
-            with src as s:
+            with src as src:
                 content = """# Created by git-ssh
 # You may modify this file, but it may be overwritten without warning by
 # git-ssh if you tell it to do so.
@@ -63,10 +63,8 @@ Host *
     AddKeysToAgent yes
 
 """.format(self._key)
-                if not s.write(content):
+                if not src.write(content):
                     return False
-                else:
-                    Logger.log("Config created: '{}' at '{}'".format(
-                        self._name, self._path
-                    ))
-                    return True
+
+                Logger.log("Config created: '{}' at '{}'".format(self._name, self._path))
+                return True

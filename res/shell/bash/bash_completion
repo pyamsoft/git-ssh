@@ -147,21 +147,23 @@ _git_ssh()
 
   local git_ssh_options="\
     --ssh \
-    --create-config \
-    --remove-config \
-    --list-configs \
+    --ssh-create \
+    --ssh-remove \
+    --ssh-list \
     --ssh-opts \
-    --git-path \
+    --ssh-git \
     --ssh-help \
     --ssh-version \
+    --ssh-alias \
     --ssh-debug"
 
   local git_argument_options="\
     --ssh \
-    --create-config \
-    --remove-config \
+    --ssh-create \
+    --ssh-remove \
     --ssh-opts \
-    --git-path"
+    --ssh-git \
+    --ssh-alias"
 
   # Find and populate git-ssh configs
   local git_ssh_configs
@@ -191,12 +193,16 @@ _git_ssh()
           # shellcheck disable=SC2207
           COMPREPLY=($(compgen -W "${git_ssh_options}" -- "${cur}"))
           ;;
-        --ssh-help|--ssh-version|--list-configs)
+        --ssh-help|--ssh-version|--ssh-list)
           # These are exiting options, don't suggest anything else since
           # it will not take effect
           COMPREPLY=()
           ;;
-        --ssh|--remove-config)
+        --ssh-git|--ssh-create)
+          # Suggest the shell defaults since we need a file path
+          COMPREPLY=()
+          ;;
+        --ssh|--ssh-remove|--ssh-alias)
           # Complete if we have configs
           if [ -n "${git_ssh_configs}" ]; then
             # shellcheck disable=SC2207

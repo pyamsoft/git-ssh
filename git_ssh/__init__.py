@@ -43,8 +43,8 @@ def _initialize_parser():
         "--ssh-create",
         action="store",
         dest="create_string",
-        metavar="NAME:SSH_KEY_PATH",
-        help="Create a new ssh config using NAME:SSH_KEY_PATH")
+        metavar="SSH_KEY_PATH:NAME",
+        help="Create a new ssh config using named NAME with a private key at SSH_KEY_PATH")
     parser.add_argument(
         "--ssh-remove",
         action="store",

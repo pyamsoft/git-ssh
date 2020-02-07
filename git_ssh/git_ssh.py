@@ -99,7 +99,10 @@ class GitSsh:
         if len(split_create) != 2:
             raise InvalidCreateStringError(create_string)
 
-        name, key = split_create
+        key, name = split_create
+
+        # TODO Validate that key exists at path
+
         path = GitSsh._version_path(config_dir, name)
         Logger.d("Create string -- name: {}, path: {}, key: {}".format(
             name, path, key
@@ -161,13 +164,13 @@ class GitSsh:
             Logger.e(err)
 
         write_config = GitSsh._parse_create_string(wrapper_args.create_string,
-                                                 config_dir)
+                                                   config_dir)
 
         # If the write config is empty, this does nothing
         write_config.write()
 
         remove_config = GitSsh._parse_remove(wrapper_args.remove_config,
-                                           config_dir)
+                                             config_dir)
 
         # If the remove_config is empty, this does nothing
         remove_config.remove()
