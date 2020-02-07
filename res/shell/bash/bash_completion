@@ -1,40 +1,131 @@
 # The GPLv2 License
 #
-#   Copyright (C) 2017  Peter Kenji Yamanaka
+#  Copyright (C) 2017 Peter Kenji Yamanaka
 #
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation; either version 2 of the License, or
-#   (at your option) any later version.
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
 #
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License along
-#   with this program; if not, write to the Free Software Foundation, Inc.,
-#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#  You should have received a copy of the GNU General Public License along
+#  with this program; if not, write to the Free Software Foundation, Inc.,
+#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
+# Fallback to git completion
+# $1 possible options
+# $2 possible argument options - a subset of possible options
 __fallback()
 {
   # If its not a command we know how to do... what should we do?
   # For now I guess we fall back to the bash_completion default
   # of listing out files and directories.
-  _filedir
+  local possible_options="$1"
+  local possible_argument_options="$2"
+
+  # This is a super hack which changes the COMP_WORDS and COMP_CWORD context to something that
+  # plain git would see
+  __get_non_git_ssh_options "${possible_options}" "${possible_argument_options}"
+
+  unset possible_argument_options
+  unset possible_options
+
+  # We then call the git built in completion function - because we're insane
+  __git_wrap__git_main
 }
 
+
+# $1 possible options
+# $2 option
+__is_git_ssh_option()
+{
+  local possible_options="$1"
+  local option="$2"
+
+  for opt in ${possible_options}; do
+    if [ "${option}" = "${opt}" ]; then
+      return 0
+    fi
+  done
+
+  unset possible_options
+  unset option
+
+  return 1
+}
+
+
+# $1 possible options
+# $2 possible argument options - a subset of possible options
+__get_non_git_ssh_options()
+{
+  local possible_options="$1"
+  local possible_argument_options="$2"
+  local plain_git_options=()
+
+  # Figure out which options are us and which are not - what is the underlying git command here
+  local loop_index=0
+  for cword in "${COMP_WORDS[@]}"; do
+    local done=0
+    if [ -n "${cword}" ]; then
+      # If the previous word is a git-ssh argument command
+      if [ "${loop_index}" -gt 0 ]; then
+        local previous="${COMP_WORDS[loop_index-1]}"
+        # If previous command is a git-ssh option, skip this command
+        if __is_git_ssh_option "${possible_argument_options}" "${previous}"; then
+          done=1
+        fi
+      fi
+
+      if [ "${done}" -eq 0 ]; then
+        if ! __is_git_ssh_option "${possible_options}" "${cword}"; then
+          plain_git_options+=("${cword}")
+        fi
+      fi
+    fi
+
+    loop_index=$((loop_index+1))
+  done
+
+  # Remove whatever the first word is, maybe its git, maybe its git-ssh
+  plain_git_options=("${plain_git_options[@]:1}")
+
+  # If the remaining first argument is ssh, that means the first word was probably `git` and
+  # it was called like `git ssh` instead of `git-ssh`. Remove the `ssh` word too
+  if [ "${plain_git_options[0]}" = "ssh" ]; then
+    plain_git_options=("${plain_git_options[@]:1}")
+  fi
+
+  # Finally, add git back to the options to make this look like a normal git call
+  plain_git_options=('git' "${plain_git_options[@]}")
+
+  # Compute the difference and re-assign the environment
+  # For some reason we need to add back 1 to the COMP_CWORD index
+  # probably because we are artificually inflating with the word `git`
+  local array_length_difference="$((${#COMP_WORDS[@]}-${#plain_git_options[@]}))"
+  export COMP_WORDS=("${plain_git_options[@]}")
+  export COMP_CWORD=$((COMP_CWORD-array_length_difference+1))
+  export COMPREPLY=()
+
+  unset loop_index
+  unset possible_options
+  unset possible_argument_options
+  unset plain_git_options
+  unset array_length_difference
+}
+
+# Main completion function
 _git_ssh()
 {
-  local cur
-  local prev
-  cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD-1]}"
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  local prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-  local git_options
-  local git_ssh_options
-  git_options="$(git --list-cmds=builtins 2>/dev/null || echo 'add am apply archive bisect blame branch bundle checkout cherry cherry-pick citool clean clone commit config describe diff difftool fetch format-patch fsck gc gitk grep gui help init instaweb log merge mergetool mv notes pull push range-diff rebase reflog remote repack replace request-pull reset revert rm send-email shortlog show show-branch ssh stage stash status submodule tag whatchanged worktree')"
-  git_ssh_options="\
+  local git_ssh_options="\
     --ssh \
     --create-config \
     --remove-config \
@@ -45,9 +136,16 @@ _git_ssh()
     --ssh-version \
     --ssh-debug"
 
+  local git_argument_options="\
+    --ssh \
+    --create-config \
+    --remove-config \
+    --ssh-opts \
+    --git-path"
+
+  # Find and populate git-ssh configs
   local git_ssh_configs
-  local git_config_dir
-  git_config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/git-ssh"
+  local git_config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/git-ssh"
   if [ -d "${git_config_dir}" ]; then
     git_ssh_configs="$(find "${git_config_dir}" \
       -name '*.2' \
@@ -60,49 +158,50 @@ _git_ssh()
     # Suggest git-ssh options
     --*)
       # shellcheck disable=SC2207
-      COMPREPLY=( $(compgen -W "${git_ssh_options}" -- "${cur}") )
-      ;;
+      COMPREPLY=($(compgen -W "${git_ssh_options}" -- "${cur}"))
+    ;;
     *)
       # If the command held by $prev is either 'git-ssh' or 'git ssh'
       # we can at least complete all of the various git commands
       #
       # Otherwise, we can't do anything so fall back to the default.
       case "${prev}" in
+        # Suggest git-ssh options only immediately after the 'ssh' command
+        ssh)
+          # shellcheck disable=SC2207
+          COMPREPLY=($(compgen -W "${git_ssh_options}" -- "${cur}"))
+          ;;
         --ssh-help|--ssh-version|--list-configs)
           # These are exiting options, don't suggest anything else since
           # it will not take effect
+          COMPREPLY=()
           ;;
         --ssh|--remove-config)
           # Complete if we have configs
           if [ -n "${git_ssh_configs}" ]; then
             # shellcheck disable=SC2207
-            COMPREPLY=( $(compgen -W "${git_ssh_configs}" -- "${cur}") )
+            COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
           else
-            __fallback
+            # What can we do without configs for the config option
+            COMPREPLY=()
           fi
           ;;
         *)
-          local using_git
-          using_git=0
-          for cmd in ${git_options}; do
-            if [ "${prev}" = "${cmd}" ]; then
-              using_git=1
-              break
-            fi
-          done
-
-          # If we are using git, don't suggest git commands
-          if [ "${using_git}" -eq 1 ]; then
-          __fallback
-          else
-            # Otherwise suggest git commands
-            # shellcheck disable=SC2207
-            COMPREPLY=( $(compgen -W "${git_options}" -- "${cur}") )
-          fi
+          # Fallback to default git behavior
+          __fallback "${git_ssh_options}" "${git_argument_options}"
           ;;
       esac
-      ;;
+    ;;
   esac
+
+  unset cur
+  unset local
+  unset prev
+  unset git_ssh_options
+  unset git_argument_options
+  unset git_ssh_configs
+  unset git_config_dir
 }
 
-complete -F _git_ssh git-ssh
+# Tie completion function to command
+complete -o bashdefault -o default -o nospace -F _git_ssh git-ssh
