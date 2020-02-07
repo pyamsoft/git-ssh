@@ -115,11 +115,15 @@ class GitSsh:
             Logger.d("No remove_config passed, empty RemoveConfig")
             return RemoveConfig("", "")
 
-        path = GitSsh._version_path(config_dir, remove_config)
-        Logger.d("Remove config -- name: {}, path: {}".format(
-            remove_config, path
-        ))
-        return RemoveConfig(remove_config, path)
+        found_config = GitSsh._find_ssh_config(config_dir, remove_config)
+        if found_config.name():
+            path = GitSsh._version_path(config_dir, remove_config)
+            Logger.d("Remove config -- name: {}, path: {}".format(
+                remove_config, path
+            ))
+            return RemoveConfig(remove_config, path)
+
+        raise NoSshConfigError(remove_config)
 
     @staticmethod
     def _list_all_configs(config_dir):
