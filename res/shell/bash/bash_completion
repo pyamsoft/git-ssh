@@ -108,13 +108,33 @@ __get_non_git_ssh_options()
   # For some reason we need to add back 1 to the COMP_CWORD index
   # probably because we are artificually inflating with the word `git`
   local array_length_difference="$((${#COMP_WORDS[@]}-${#plain_git_options[@]}))"
+
+  # If the final argument we are looking at is an option arg -* or --*, do not treat it
+  local option_difference_offset
+  local last_option_element="${COMP_WORDS[-1]}"
+  case "${last_option_element}" in
+    -*)
+      option_difference_offset=0
+      ;;
+    *)
+      option_difference_offset=1
+      ;;
+  esac
+
   export COMP_WORDS=("${plain_git_options[@]}")
-  export COMP_CWORD=$((COMP_CWORD-array_length_difference+1))
+  export COMP_CWORD=$((COMP_CWORD-array_length_difference+option_difference_offset))
   export COMPREPLY=()
+
+  # NOTE: Not perfect obviously.
+  # It will usually provide the completion options but it does not actually autocomplete the text
+  # You have to type at least one letter and then mash tab to see the possible completions.
+  #
+  # Wonder what else we need to do to make this work as if you were calling plain git.
 
   unset loop_index
   unset possible_options
   unset possible_argument_options
+  unset option_difference_offset
   unset plain_git_options
   unset array_length_difference
 }
