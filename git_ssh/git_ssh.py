@@ -198,8 +198,8 @@ class GitSsh:
                 found_config = GitSsh._find_ssh_config(config_dir, name)
                 if found_config.name():
                     self._ssh = found_config
-
-                raise NoSshConfigError(name)
+                else:
+                    raise NoSshConfigError(name)
 
         return False
 
