@@ -40,13 +40,13 @@ def _initialize_parser():
         metavar="CONFIG",
         help="Name of a config file in the config directory")
     parser.add_argument(
-        "--create-config",
+        "--ssh-create",
         action="store",
         dest="create_string",
         metavar="NAME:SSH_KEY_PATH",
         help="Create a new ssh config using NAME:SSH_KEY_PATH")
     parser.add_argument(
-        "--remove-config",
+        "--ssh-remove",
         action="store",
         dest="remove_config",
         metavar="NAME",
@@ -58,13 +58,13 @@ def _initialize_parser():
         metavar="[OPTIONS]",
         help="Comma separated string of SSH options")
     parser.add_argument(
-        "--list-configs",
+        "--ssh-list",
         action="store_const",
         dest="list",
         const=True,
         help="List all configs found in the config directory")
     parser.add_argument(
-        "--git-path",
+        "--ssh-git",
         action="store",
         dest="git_path",
         metavar="PATH",
