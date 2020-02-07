@@ -147,23 +147,35 @@ _git_ssh()
 
   local git_ssh_options="\
     --ssh \
+    --ssh= \
     --ssh-create \
+    --ssh-create= \
     --ssh-remove \
+    --ssh-remove= \
     --ssh-list \
     --ssh-opts \
+    --ssh-opts= \
     --ssh-git \
+    --ssh-git= \
     --ssh-help \
     --ssh-version \
     --ssh-alias \
+    --ssh-alias= \
     --ssh-debug"
 
   local git_argument_options="\
     --ssh \
+    --ssh= \
     --ssh-create \
+    --ssh-create= \
     --ssh-remove \
+    --ssh-remove= \
     --ssh-opts \
+    --ssh-opts= \
     --ssh-git \
-    --ssh-alias"
+    --ssh-git= \
+    --ssh-alias \
+    --ssh-alias="
 
   # Find and populate git-ssh configs
   local git_ssh_configs
