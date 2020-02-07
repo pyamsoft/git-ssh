@@ -64,6 +64,10 @@ class Git:
             Logger.e("KeyboardInterrupt triggered, stopping _run")
             Logger.e(err)
 
+    def path(self):
+        """Returns the path to Git"""
+        return self._git_path
+
     def call(self, args):
         """A normal call to the git binary, pass arguments through"""
         Logger.d("Calling normal git without ssh wrapped environment")
