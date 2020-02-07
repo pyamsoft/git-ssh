@@ -144,16 +144,64 @@ class GitSsh:
 
         Logger.log("Total config count: {}".format(counter))
 
-    @staticmethod
-    def _generate_ssh_alias(alias):
-        Logger.d("Generating SSH alias for: {}, use with eval\n".format(alias))
-        Logger.log("alias git='git ssh --ssh={} '".format(alias))
-
     def __init__(self, git):
         """Initialize GitSsh wrapper"""
         self._git = git
         self._ssh = Config.empty()
         self._ssh_options = []
+
+    def _generate_ssh_alias(self, alias):
+        """Generate an alias for the git command using the wrapper"""
+        Logger.d("Generating SSH alias for: {}, use with eval\n".format(alias))
+
+        # If there are options, add them too
+        options = ""
+        if self._ssh_options:
+            options = " ".join(self._ssh_options)
+            Logger.d("Adding ssh options to alias: {}".format(options))
+
+        git_path = self._git.path()
+        Logger.d("Git found at {} for alias.".format(git_path))
+
+        command = "alias git='git ssh --ssh={} --ssh-git=\"{}\" {}'"
+        Logger.log(command.format(alias, git_path, options))
+
+    def _execute_options(self, wrapper_args, config_dir):
+        """Parse the wrapper specific arguments and execute commands where possible"""
+        if wrapper_args.create_string:
+            # If the write config is empty, this does nothing
+            GitSsh._parse_create_string(wrapper_args.create_string, config_dir).write()
+            return True
+
+        if wrapper_args.remove_config:
+            # If the remove_config is empty, this does nothing
+            GitSsh._parse_remove(wrapper_args.remove_config, config_dir).remove()
+            return True
+
+        if wrapper_args.list:
+            GitSsh._list_all_configs(config_dir)
+            return True
+
+        if wrapper_args.ssh_alias:
+            name = wrapper_args.ssh_alias
+            if name:
+                found_config = GitSsh._find_ssh_config(config_dir, name)
+                if found_config.name():
+                    self._generate_ssh_alias(name)
+                    return True
+
+                raise NoSshConfigError(name)
+        else:
+            # Find ssh config if specified
+            name = wrapper_args.ssh
+            if name:
+                found_config = GitSsh._find_ssh_config(config_dir, name)
+                if found_config.name():
+                    self._ssh = found_config
+
+                raise NoSshConfigError(name)
+
+        return False
 
     def handle_options(self, wrapper_args):
         """Parse the wrapper specific arguments into correct flags"""
@@ -172,40 +220,11 @@ class GitSsh:
             for option in wrapper_args.ssh_opts.split(","):
                 self._ssh_options.append("-o {} ".format(option))
 
-        done = False
-        if wrapper_args.create_string:
-            # If the write config is empty, this does nothing
-            GitSsh._parse_create_string(wrapper_args.create_string, config_dir).write()
-            done = True
-        elif wrapper_args.remove_config:
-            # If the remove_config is empty, this does nothing
-            GitSsh._parse_remove(wrapper_args.remove_config, config_dir).remove()
-            done = True
-        elif wrapper_args.list:
-            GitSsh._list_all_configs(config_dir)
-            done = True
-        elif wrapper_args.ssh_alias:
-            name = wrapper_args.ssh_alias
-            if name:
-                found_config = GitSsh._find_ssh_config(config_dir, name)
-                if found_config.name():
-                    GitSsh._generate_ssh_alias(name)
-                    done = True
-                else:
-                    raise NoSshConfigError(name)
-        else:
-            # Find ssh config if specified
-            name = wrapper_args.ssh
-            if name:
-                found_config = GitSsh._find_ssh_config(config_dir, name)
-                if found_config.name():
-                    self._ssh = found_config
-                else:
-                    raise NoSshConfigError(name)
-
+        done = self._execute_options(wrapper_args, config_dir)
         return GitRunner(self._ssh, self._ssh_options, self._git, done)
 
 class GitRunner:
+    """Runs git commands, or if a command has already 'finished' do nothing"""
 
     def __init__(self, ssh, ssh_options, git, done):
         self._ssh = ssh
@@ -225,6 +244,7 @@ class GitRunner:
 
 
 class NoSshConfigError(ExpectedError):
+    """Error when no SSH config can be found for the given name"""
 
     def __init__(self, key):
         """No config found for requested name"""
@@ -233,8 +253,12 @@ class NoSshConfigError(ExpectedError):
 
 
 class InvalidCreateStringError(ExpectedError):
+    """SSH create strings must be passed as PATH_TO_KEY:NAME"""
 
     def __init__(self, string):
         """Invalid create string format, either too many args or too little"""
         super(InvalidCreateStringError, self) \
-            .__init__("Create string is invalid format: {}".format(string))
+            .__init__("""
+Create string is invalid format: {}
+Create string must be in the format <path to key>:<name>
+""".format(string))
