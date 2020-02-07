@@ -35,8 +35,8 @@ class Git:
         """Initialize a wrapper for the real Git binary"""
         if not os.path.exists(git_path):
             raise GitError(git_path)
-        else:
-            self._git_path = git_path
+
+        self._git_path = git_path
 
     @staticmethod
     def _run(args, env=None):
@@ -60,9 +60,9 @@ class Git:
                     stdout=sys.stdout.buffer,
                     stderr=sys.stderr.buffer
                 )
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt as err:
             Logger.e("KeyboardInterrupt triggered, stopping _run")
-            Logger.e(e)
+            Logger.e(err)
 
     def call(self, args):
         """A normal call to the git binary, pass arguments through"""
@@ -72,7 +72,7 @@ class Git:
         full_args = [self._git_path]
         if args:
             full_args += args
-        self._run(full_args)
+        Git._run(full_args)
 
     def ssh_call(self, git_args, ssh_config, ssh_args):
         """An ssh wrapped call to the Git binary, set up for specific SSH"""
@@ -95,10 +95,11 @@ class Git:
         full_args = [self._git_path]
         if git_args:
             full_args += git_args
-        self._run(full_args, ssh_env)
+        Git._run(full_args, ssh_env)
 
 
 class GitError(ExpectedError):
+
     def __init__(self, path):
         """Git not found"""
         super(GitError, self) \
@@ -106,10 +107,11 @@ class GitError(ExpectedError):
 
 
 class BadConfigError(ExpectedError):
+
     def __init__(self, config):
         """Invalid config, either name or path is bad"""
         super(BadConfigError, self) \
             .__init__(
-            "Config is invalid: [name: {}, path: {}]".format(
-                config.name(), config.path()
-            ))
+                "Config is invalid: [name: {}, path: {}]".format(
+                    config.name(), config.path()
+                ))
