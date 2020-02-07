@@ -167,25 +167,21 @@ class GitSsh:
             Logger.e("Unable to create config dir, may already exist")
             Logger.e(err)
 
-        write_config = GitSsh._parse_create_string(wrapper_args.create_string,
-                                                   config_dir)
-
-        # If the write config is empty, this does nothing
-        write_config.write()
-
-        remove_config = GitSsh._parse_remove(wrapper_args.remove_config,
-                                             config_dir)
-
-        # If the remove_config is empty, this does nothing
-        remove_config.remove()
-
         # Parse ssh options into list
         if wrapper_args.ssh_opts:
             for option in wrapper_args.ssh_opts.split(","):
                 self._ssh_options.append("-o {} ".format(option))
 
         done = False
-        if wrapper_args.list:
+        if wrapper_args.create_string:
+            # If the write config is empty, this does nothing
+            GitSsh._parse_create_string(wrapper_args.create_string, config_dir).write()
+            done = True
+        elif wrapper_args.remove_config:
+            # If the remove_config is empty, this does nothing
+            GitSsh._parse_remove(wrapper_args.remove_config, config_dir).remove()
+            done = True
+        elif wrapper_args.list:
             GitSsh._list_all_configs(config_dir)
             done = True
         elif wrapper_args.ssh_alias:
