@@ -137,33 +137,36 @@ class GitSsh:
 
         Logger.log("Total config count: {}".format(counter))
 
-    def __init__(self, git, wrapper_args, git_args):
+    @staticmethod
+    def _generate_ssh_alias(alias):
+        Logger.d("Generating SSH alias for: {}, use with eval\n".format(alias))
+        Logger.log("alias git='git ssh --ssh={} '".format(alias))
+
+    def __init__(self, git):
         """Initialize GitSsh wrapper"""
         self._git = git
-        self._git_args = git_args
         self._ssh = Config.empty()
         self._ssh_options = []
-        self._done = False
-        self._handle_wrapper_args(wrapper_args)
 
-    def _handle_wrapper_args(self, wrapper_args):
+    def handle_options(self, wrapper_args):
         """Parse the wrapper specific arguments into correct flags"""
-        config_dir = self._find_config_dir()
+
+        config_dir = GitSsh._find_config_dir()
 
         # Make the config dir
         try:
             os.mkdir(config_dir)
-        except FileExistsError as e:
+        except FileExistsError as err:
             Logger.e("Unable to create config dir, may already exist")
-            Logger.e(e)
+            Logger.e(err)
 
-        write_config = self._parse_create_string(wrapper_args.create_string,
+        write_config = GitSsh._parse_create_string(wrapper_args.create_string,
                                                  config_dir)
 
         # If the write config is empty, this does nothing
         write_config.write()
 
-        remove_config = self._parse_remove(wrapper_args.remove_config,
+        remove_config = GitSsh._parse_remove(wrapper_args.remove_config,
                                            config_dir)
 
         # If the remove_config is empty, this does nothing
@@ -174,32 +177,52 @@ class GitSsh:
             for option in wrapper_args.ssh_opts.split(","):
                 self._ssh_options.append("-o {} ".format(option))
 
+        done = False
         if wrapper_args.list:
             GitSsh._list_all_configs(config_dir)
-            self._done = True
+            done = True
+        elif wrapper_args.ssh_alias:
+            name = wrapper_args.ssh_alias
+            if name:
+                found_config = GitSsh._find_ssh_config(config_dir, name)
+                if found_config.name():
+                    GitSsh._generate_ssh_alias(name)
+                    done = True
+                else:
+                    raise NoSshConfigError(name)
         else:
             # Find ssh config if specified
             name = wrapper_args.ssh
             if name:
-                found_config = self._find_ssh_config(config_dir, name)
+                found_config = GitSsh._find_ssh_config(config_dir, name)
                 if found_config.name():
                     self._ssh = found_config
                 else:
                     raise NoSshConfigError(name)
 
-    def call(self):
+        return GitRunner(self._ssh, self._ssh_options, self._git, done)
+
+class GitRunner:
+
+    def __init__(self, ssh, ssh_options, git, done):
+        self._ssh = ssh
+        self._ssh_options = ssh_options
+        self._git = git
+        self._done = done
+
+    def call(self, git_args):
         """Call through to either Git or wrap in an SSH environment"""
         if self._done:
             Logger.d("Already done, ignore call()")
         else:
             if self._ssh.path():
-                self._git.ssh_call(self._git_args, self._ssh,
-                                   self._ssh_options)
+                self._git.ssh_call(git_args, self._ssh, self._ssh_options)
             else:
-                self._git.call(self._git_args)
+                self._git.call(git_args)
 
 
 class NoSshConfigError(ExpectedError):
+
     def __init__(self, key):
         """No config found for requested name"""
         super(NoSshConfigError, self) \
@@ -207,6 +230,7 @@ class NoSshConfigError(ExpectedError):
 
 
 class InvalidCreateStringError(ExpectedError):
+
     def __init__(self, string):
         """Invalid create string format, either too many args or too little"""
         super(InvalidCreateStringError, self) \

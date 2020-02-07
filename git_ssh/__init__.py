@@ -55,7 +55,7 @@ def _initialize_parser():
         "--ssh-opts",
         action="store",
         dest="ssh_opts",
-        metavar="OPTION STRING",
+        metavar="[OPTIONS]",
         help="Comma separated string of SSH options")
     parser.add_argument(
         "--list-configs",
@@ -82,6 +82,12 @@ def _initialize_parser():
         const=True,
         dest="debug",
         help="Turn on debug logging")
+    parser.add_argument(
+        "--ssh-alias",
+        action="store",
+        dest="ssh_alias",
+        metavar="NAME",
+        help="Create an alias for a given SSH key")
     return parser
 
 
@@ -117,11 +123,9 @@ def main():
     # Parse the options before starting setup
     git_path, wrapper_args, plain_args = _parse_options()
 
-    wrapper = None
     try:
-        wrapper = GitSsh(Git(git_path), wrapper_args, plain_args)
-    except ExpectedError as e:
-        Logger.fatal(e)
-
-    if wrapper:
-        wrapper.call()
+        wrapper = GitSsh(Git(git_path))
+        if wrapper:
+            wrapper.handle_options(wrapper_args).call(plain_args)
+    except ExpectedError as err:
+        Logger.fatal(err)
