@@ -15,7 +15,7 @@ from setuptools import find_packages, setup, Command
 NAME = 'git_ssh'
 DESCRIPTION = 'An ssh-key wrapper for git'
 URL = 'https://github.com/pyamsoft/git-ssh'
-EMAIL = 'pyam.soft@gmail.com'
+EMAIL = 'developer.pyamsoft@gmail.com'
 AUTHOR = 'pyamsoft'
 REQUIRES_PYTHON = '>=3.5.0'
 VERSION = None
