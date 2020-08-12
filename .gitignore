@@ -2,8 +2,8 @@
 venv
 
 # Ignore idea folder
-!.idea/codeStyles/Project.xml
-.idea
+.idea/*
+!.idea/copyright
 
 # Ignore build caches and files
 *.pyc

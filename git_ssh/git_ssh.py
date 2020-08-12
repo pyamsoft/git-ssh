@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
-#
-#  The GPLv2 License
-#
-#    Copyright (C) 2019  Peter Kenji Yamanaka
-#
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+#  Copyright (C) 2020  Peter Kenji Yamanaka
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation, Inc.,
+#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
 
 import os
 
@@ -170,12 +168,14 @@ class GitSsh:
         """Parse the wrapper specific arguments and execute commands where possible"""
         if wrapper_args.create_string:
             # If the write config is empty, this does nothing
-            GitSsh._parse_create_string(wrapper_args.create_string, config_dir).write()
+            GitSsh._parse_create_string(wrapper_args.create_string,
+                                        config_dir).write()
             return True
 
         if wrapper_args.remove_config:
             # If the remove_config is empty, this does nothing
-            GitSsh._parse_remove(wrapper_args.remove_config, config_dir).remove()
+            GitSsh._parse_remove(wrapper_args.remove_config,
+                                 config_dir).remove()
             return True
 
         if wrapper_args.list:
@@ -222,6 +222,7 @@ class GitSsh:
 
         done = self._execute_options(wrapper_args, config_dir)
         return GitRunner(self._ssh, self._ssh_options, self._git, done)
+
 
 class GitRunner:
     """Runs git commands, or if a command has already 'finished' do nothing"""
