@@ -1,6 +1,6 @@
 autopep8==1.5.4
 flake8==3.8.3
-greenlet==0.4.16
+greenlet==0.4.17
 mccabe==0.6.1
 msgpack==1.0.0
 neovim==0.3.1
