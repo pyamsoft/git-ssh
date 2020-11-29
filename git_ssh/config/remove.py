@@ -40,9 +40,7 @@ class RemoveConfig:
         try:
             os.remove(self._path)
         except OSError as err:
-            Logger.e(
-                "Unable to remove: '{}' at '{}'".format(self._name, self._path))
+            Logger.e("Unable to remove: '{}' at '{}'".format(self._name, self._path))
             Logger.e(err)
         else:
-            Logger.log(
-                "Config removed: '{}' at '{}'".format(self._name, self._path))
+            Logger.log("Config removed: '{}' at '{}'".format(self._name, self._path))

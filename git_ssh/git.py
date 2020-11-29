@@ -81,16 +81,12 @@ class Git:
         if not ssh_config.name() or not ssh_config.path():
             raise BadConfigError(ssh_config)
 
-        Logger.d("Calling git with ssh wrapped environment: {}".format(
-            ssh_config.name()
-        ))
+        Logger.d("Calling git with ssh wrapped environment: {}".format(ssh_config.name()))
         Logger.d("Git path: {} {}".format(self._git_path, git_args))
 
         ssh_env = os.environ.copy()
         args = "".join(ssh_args)
-        ssh_env[Git.SSH_COMMAND] = "ssh -F '{}' {} ".format(
-            ssh_config.path(), args
-        )
+        ssh_env[Git.SSH_COMMAND] = "ssh -F '{}' {} ".format(ssh_config.path(), args)
 
         Logger.d("SSH env: {}".format(ssh_env[Git.SSH_COMMAND]))
 
@@ -104,16 +100,13 @@ class GitError(ExpectedError):
 
     def __init__(self, path):
         """Git not found"""
-        super(GitError, self) \
-            .__init__("Git binary cannot be found at: {}".format(path))
+        super(GitError, self).__init__("Git binary cannot be found at: {}".format(path))
 
 
 class BadConfigError(ExpectedError):
 
     def __init__(self, config):
         """Invalid config, either name or path is bad"""
-        super(BadConfigError, self) \
-            .__init__(
-            "Config is invalid: [name: {}, path: {}]".format(
-                config.name(), config.path()
-            ))
+        super(BadConfigError, self).__init__(
+            "Config is invalid: [name: {}, path: {}]".format(config.name(), config.path())
+        )

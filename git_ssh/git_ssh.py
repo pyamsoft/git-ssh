@@ -69,13 +69,9 @@ class GitSsh:
             xdg_env = os.environ[Const.XDG_CONFIG]
             if xdg_env:
                 config_dir = "{}/git-ssh".format(xdg_env)
-                Logger.d("Config dir: {}: {}".format(
-                    Const.XDG_CONFIG, config_dir
-                ))
+                Logger.d("Config dir: {}: {}".format(Const.XDG_CONFIG, config_dir))
         except KeyError:
-            Logger.e(
-                "Error getting config dir from {}".format(Const.XDG_CONFIG)
-            )
+            Logger.e("Error getting config dir from {}".format(Const.XDG_CONFIG))
 
             # Set to nothing so it will be handled by next if
             config_dir = None
@@ -102,9 +98,7 @@ class GitSsh:
         # TODO Validate that key exists at path
 
         path = GitSsh._version_path(config_dir, name)
-        Logger.d("Create string -- name: {}, path: {}, key: {}".format(
-            name, path, key
-        ))
+        Logger.d("Create string -- name: {}, path: {}, key: {}".format(name, path, key))
         return WriteConfig(name, path, key)
 
     @staticmethod
@@ -116,9 +110,7 @@ class GitSsh:
         found_config = GitSsh._find_ssh_config(config_dir, remove_config)
         if found_config.name():
             path = GitSsh._version_path(config_dir, remove_config)
-            Logger.d("Remove config -- name: {}, path: {}".format(
-                remove_config, path
-            ))
+            Logger.d("Remove config -- name: {}, path: {}".format(remove_config, path))
             return RemoveConfig(remove_config, path)
 
         raise NoSshConfigError(remove_config)
@@ -168,14 +160,12 @@ class GitSsh:
         """Parse the wrapper specific arguments and execute commands where possible"""
         if wrapper_args.create_string:
             # If the write config is empty, this does nothing
-            GitSsh._parse_create_string(wrapper_args.create_string,
-                                        config_dir).write()
+            GitSsh._parse_create_string(wrapper_args.create_string, config_dir).write()
             return True
 
         if wrapper_args.remove_config:
             # If the remove_config is empty, this does nothing
-            GitSsh._parse_remove(wrapper_args.remove_config,
-                                 config_dir).remove()
+            GitSsh._parse_remove(wrapper_args.remove_config, config_dir).remove()
             return True
 
         if wrapper_args.list:
@@ -249,8 +239,7 @@ class NoSshConfigError(ExpectedError):
 
     def __init__(self, key):
         """No config found for requested name"""
-        super(NoSshConfigError, self) \
-            .__init__("Could not find config matching key: {}".format(key))
+        super(NoSshConfigError, self).__init__("Could not find config matching key: {}".format(key))
 
 
 class InvalidCreateStringError(ExpectedError):
@@ -258,8 +247,7 @@ class InvalidCreateStringError(ExpectedError):
 
     def __init__(self, string):
         """Invalid create string format, either too many args or too little"""
-        super(InvalidCreateStringError, self) \
-            .__init__("""
+        super(InvalidCreateStringError, self).__init__("""
 Create string is invalid format: {}
 Create string must be in the format <path to key>:<name>
 """.format(string))
