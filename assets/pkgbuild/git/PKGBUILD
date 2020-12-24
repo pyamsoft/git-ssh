@@ -26,7 +26,6 @@ conflicts=('git-ssh')
 # shellcheck disable=SC2034
 license=('GPLv2')
 # shellcheck disable=SC2034
-install="${_gitname}.install"
 url="https://github.com/pyamsoft/git-ssh.git"
 
 ##
