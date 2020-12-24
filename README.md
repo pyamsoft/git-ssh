@@ -4,23 +4,14 @@ An ssh-key selection wrapper for git
 
 ### Usage and Options
 ```
-usage: git-ssh [--ssh CONFIG] [--create-config NAME:SSH_KEY_PATH]
-               [--remove-config NAME] [--ssh-opts OPTION STRING]
-               [--list-configs] [--git-path PATH] [--ssh-help] [--ssh-version]
-               [--ssh-debug]
+usage: git-ssh
 
-optional arguments:
-  --ssh CONFIG          Name of a config file in the config directory
-  --create-config NAME:SSH_KEY_PATH
-                        Create a new ssh config using NAME:SSH_KEY_PATH
-  --remove-config NAME  Remove an existing config by NAME
-  --ssh-opts OPTION STRING
-                        Comma separated string of SSH options
-  --list-configs        List all configs found in the config directory
-  --git-path PATH       Path to Git binary (defaults to /usr/bin/git)
-  --ssh-help            Display this help and exit
-  --ssh-version         Display the version and exit
-  --ssh-debug           Turn on debug logging
+[Commands]
+export <config>           Load a config from CONFIG_DIR to TARGET_CONFIG
+list                      List all configs in CONFIG_DIR
+create <config> <path>    Create a new <config> pointing to file name <path>
+delete <config>           Delete a <config>
+help                      This help
 ```
 
 ### Configuration
@@ -29,40 +20,36 @@ Configuration files are just plain ssh_config files that have, by default, a
 couple of options preset. The config files apply by default to all hosts and
 have a specific `IdentityFile` noted. The `IdentitiesOnly` option is on,
 meaning that only the `IdentityFile` specified can be used. One can override
-these settings via the --ssh-args command line option, or by editing the
-generated config file directly.
+these settings by editing the generated config file directly.
 
 CONFIG files are by default searched for in `${XDG_CONFIG_HOME}/git-ssh`
 
-## Usability
+## Example
 
-To make `git-ssh` more friendly to the `git` user, the following can be performed
-in the shell to allow for shell completion among other nice things:
+For example, lets say you have 2 different ssh keys at `$HOME/.ssh`
+
+`id_git_personal` and `id_git_company`
+
+To make git use your personal id for a project, creat it via
 ```
-alias git="/path/to/git-ssh"
+$ git-ssh create personal $HOME/.ssh/id_git_personal
 ```
-This will make all calls to `git` resolve first to `git-ssh` in the interactive
-shell. If you wish to take this a step further, you can create a symlink to
-`git-ssh` in your path before git itself is resolved, and then any program
-which expects `git` will now work with `git-ssh`.
 
-*Note* that overriding the environment to resolve first to `git-ssh` when calling
-`git` may pose a security risk in unforseen situations. This project does not
-guarantee the safety or stability of the system in the event that the
-environment is overrideen to use `git-ssh` for all git related calls.
-
-If you do not want to replace the normal resolution for a call to `git` you
-can instead call git with the following:
-```
-For example, say you wanted to do:
-
- $ git push -u origin master
-
-You can call the command as follows:
-
- $ git ssh --ssh github push -u origin master
+and then use it by eval'ing the output of the `export` command:
 
 ```
+$ eval "$(git-ssh export personal)"
+```
+
+This will load up your environment with the following:
+```
+export GIT_SSH_COMMAND='ssh -F "$HOME/.config/git-ssh/github.2"'
+```
+
+which, when used by `git` will load up ssh with the `IdentityFile` of `id_git_personal`
+
+To switch to your company key when accessing company repositories,
+create it and then export it just like you did your personal. It's that simple!
 
 ## Issues
 
