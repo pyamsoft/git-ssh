@@ -47,7 +47,7 @@ ${APP_NAME} [${VERSION}]
 CONFIG_DIR=${CONFIG_DIR}
 
 [Commands]
-export <config>            Load a config from CONFIG_DIR to TARGET_CONFIG
+export <config>           Load a config from CONFIG_DIR to TARGET_CONFIG
 list                      List all configs in CONFIG_DIR
 create <config> <path>    Create a new <config> pointing to file name <path>
 delete <config>           Delete a <config>
