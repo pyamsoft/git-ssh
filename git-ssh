@@ -124,6 +124,17 @@ Host *
     IdentityFile ${create_config__path}
     IdentitiesOnly yes
     AddKeysToAgent yes
+
+    ##
+    # Use git with SSH over an HTTP proxy
+    #
+    # You must have the "corkscrew" command installed
+    #
+    # Replace <server ip address> with your server's IP address
+    # Replace <port> with your port
+    #
+    # For more info: https://gist.github.com/ozbillwang/005bd1dfc597a2f3a00148834ad3e551
+    #
     # ProxyCommand /usr/bin/corkscrew <server ip address> <port> %h %p
 EOF
     )" >"${create_config__file}" || return 1
