@@ -130,7 +130,7 @@ Host *
     #
     # You must have the "corkscrew" command installed
     #
-    # Replace <server ip address> with your server's IP address
+    # Replace <server ip address> with your server IP address
     # Replace <port> with your port
     #
     # For more info: https://gist.github.com/ozbillwang/005bd1dfc597a2f3a00148834ad3e551
