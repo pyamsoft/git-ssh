@@ -45,7 +45,7 @@ $ git-ssh create personal $HOME/.ssh/id_git_personal
 
 and then use it by eval'ing the output of the `export` command:
 
-```
+```sh
 $ eval "$(git-ssh export personal)"
 ```
 
