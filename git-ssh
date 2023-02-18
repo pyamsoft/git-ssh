@@ -128,14 +128,14 @@ Host *
     ##
     # Use git with SSH over an HTTP proxy
     #
-    # You must have the "corkscrew" command installed
+    # You must have the "socat" command installed
     #
     # Replace <server ip address> with your server IP address
     # Replace <port> with your port
     #
     # For more info: https://gist.github.com/ozbillwang/005bd1dfc597a2f3a00148834ad3e551
     ##
-    # ProxyCommand /usr/bin/corkscrew <server ip address> <port> %h %p
+    # ProxyCommand /usr/bin/socat PROXY:<hostname>:%h:%p,proxyport=<port> 
 EOF
     )" >"${create_config__file}" || return 1
     log "Created new ${APP_NAME} config ${create_config__name} at ${create_config__file}"
