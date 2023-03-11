@@ -52,7 +52,7 @@ CONFIG_DIR=${CONFIG_DIR}
 CONFIG_VERSION=${CONFIG_VERSION}
 
 [Commands]
-export <config>             Load a config from CONFIG_DIR to TARGET_CONFIG
+export <config>             Export a config into the environment as GIT_SSH_COMMAND
 list                        List all configs in CONFIG_DIR
 create <config> <path>      Create a new <config> pointing to file name <path>
 delete <config>             Delete a <config>
