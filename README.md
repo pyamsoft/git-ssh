@@ -116,7 +116,7 @@ issue ticket.
 GPLv2
 
 ```
-  Copyright (C) 2020  Peter Kenji Yamanaka
+  Copyright (C) 2023  pyamsoft
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
