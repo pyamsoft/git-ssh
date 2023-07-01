@@ -67,12 +67,20 @@ EOF
 # List configs
 ##
 list_configs() {
+  list_configs__verbose="$1"
+
   for config in "${CONFIG_DIR}"/*."${CONFIG_VERSION}"; do
-    log
-    log "Config: $(basename "${config}") [${config}]"
-    log '=================='
-    log "$(cat "${config}")"
+    if [ -n "${list_configs__verbose}" ] && [ "${list_configs__verbose}" = "--verbose" ]; then
+      log "Config: $(basename "${config}") [${config}]"
+      log '=================='
+      log "$(cat "${config}")"
+      log
+    else
+      log "$(basename "${config}") [${config}]"
+    fi
   done
+
+  unset list_configs__verbose
   return 0
 }
 
@@ -224,6 +232,7 @@ main() {
   main__command="$1"
   main__config="$2"
   main__file_path="$3"
+  main__list_configs_verbose="$2"
 
   if [ -z "${main__command}" ]; then
     print_usage || return 1
@@ -238,7 +247,7 @@ main() {
     print_version || return 1
     ;;
   list)
-    list_configs || return 1
+    list_configs "${main__list_configs_verbose}" || return 1
     ;;
   export)
     export_config "${main__config}" || return 1
