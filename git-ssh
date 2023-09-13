@@ -54,7 +54,7 @@ CONFIG_VERSION=${CONFIG_VERSION}
 [Commands]
 export <config>             Export a config into the environment as GIT_SSH_COMMAND
 reset                       Reset GIT_SSH_COMMAND, unsetting an exported configs
-list                        List all configs in CONFIG_DIR
+list [--verbose]            List all configs in CONFIG_DIR
 create <config> <path>      Create a new <config> pointing to file name <path>
 delete <config>             Delete a <config>
 help | -h | --help          This help
