@@ -127,8 +127,7 @@ _create_config() {
     cat <<EOF
 # Created by ${APP_NAME} ${VERSION}
 #
-# You may modify this file, but it may be overwritten without warning by
-# ${APP_NAME} if you tell it to do so.
+# You may modify this file, but it may be overwritten without warning.
 
 Host *
     IdentityFile ${create_config__path}
@@ -237,8 +236,12 @@ main() {
 
   # Commands
   main__command="$1"
+
+  # Create
   main__config="$2"
   main__file_path="$3"
+
+  # List
   main__list_configs_verbose="$2"
 
   if [ -z "${main__command}" ]; then
