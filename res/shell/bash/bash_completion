@@ -25,6 +25,8 @@ _git_ssh() {
   local short_options="-h -v"
   local long_options="--help --version"
 
+  local list_options="--verbose"
+
   # Find and populate git-ssh configs
   local git_ssh_configs
   local git_config_dir="${XDG_CONFIG_HOME:-${HOME}/.config}/git-ssh"
@@ -37,11 +39,21 @@ _git_ssh() {
   fi
 
   if [[ "${cur}" = --* ]]; then
-    # shellcheck disable=SC2207
-    COMPREPLY=($(compgen -W "${long_options}" -- "${cur}"))
+    if [[ "${prev}" = "list" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
+    else
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${long_options}" -- "${cur}"))
+    fi
   elif [[ "${cur}" = -* ]]; then
-    # shellcheck disable=SC2207
-    COMPREPLY=($(compgen -W "${long_options}" -- "${cur}") $(compgen -W "${short_options}" -- "${cur}"))
+    if [[ "${prev}" = "list" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
+    else
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${long_options}" -- "${cur}") $(compgen -W "${short_options}" -- "${cur}"))
+    fi
   else
     if [[ "${prev}" = "export" ]] || [[ "${prev}" = "delete" ]]; then
       # shellcheck disable=SC2207
@@ -51,7 +63,8 @@ _git_ssh() {
     elif [[ "${prev}" = "version" ]]; then
       COMPREPLY=()
     elif [[ "${prev}" = "list" ]]; then
-      COMPREPLY=()
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
     elif [[ "${prev}" = "create" ]] || [[ "${prevprev}" = "create" ]]; then
       COMPREPLY=()
     elif [[ "${cur}" = "export" ]] || [[ "${cur}" = "delete" ]]; then
@@ -62,7 +75,8 @@ _git_ssh() {
     elif [[ "${cur}" = "version" ]]; then
       COMPREPLY=()
     elif [[ "${cur}" = "list" ]]; then
-      COMPREPLY=()
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
     elif [[ "${cur}" = "create" ]] || [[ "${prev}" = "create" ]]; then
       COMPREPLY=()
     else
