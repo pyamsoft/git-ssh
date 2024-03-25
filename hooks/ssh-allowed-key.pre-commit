@@ -1,0 +1,62 @@
+#!/bin/sh
+
+_log() {
+  printf -- '[pre-commit::ssh-allowed-key] %s\n' "$*"
+}
+
+_is_git_ssh_signed() {
+  if [ "$(git config --get 'gpg.format')" = "ssh" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+_get_allowed_ssh_signers() {
+  _signers_file="$(git config --get 'gpg.ssh.allowedsignersfile')"
+  sh -c "realpath ${_signers_file}" || return 1
+  return 0
+}
+
+_collect_allowed_signers() {
+  awk '{ print $3 }' < "${_allowed_file}"
+}
+
+_collect_current_keychain() {
+  ssh-add -L | awk '{ print $2 }'
+}
+
+main() {
+  if ! _is_git_ssh_signed; then
+    _log 'git does not sign commits with SSH. Avoiding hook!'
+    return 0
+  fi
+
+  _allowed_file="$(_get_allowed_ssh_signers)"
+  _allowed_signers="$(_collect_allowed_signers)"
+  _current_keychain="$(_collect_current_keychain)"
+
+  if [ -z "${_allowed_signers}" ]; then
+    _log 'No allowed signers found. Cannot commit.'
+    return 1
+  fi
+
+  for _allowed in ${_allowed_signers}; do
+    for _current in ${_current_keychain}; do
+      if [ "${_allowed}" = "${_current}" ]; then
+        _log "Yay!"
+        return 0
+      fi
+      unset _current
+    done
+    unset _allowed
+  done
+  unset _allowed
+
+  _log 'Could not find any allowed key in current keychain.'
+
+  return 1
+}
+
+main "$@" || exit 1
+exit 0

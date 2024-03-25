@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# A pre-commit hook that runs all pre-commit hooks ending with .pre-commit
+# in order
+HOOK_DIR="$(realpath "$(dirname "$0")")"
+readonly HOOK_DIR
+
+main() {
+  LC_ALL=C
+  export LC_ALL
+
+  for _hook in "${HOOK_DIR}"/*.pre-commit; do
+    # No hooks
+    if [ "${_hook}" = './*.pre-commit' ]; then
+      return 0
+    fi
+
+    # Run the hook
+    sh -c "${_hook} $*" || return 1
+    unset _hook
+  done
+  unset _hook
+
+  return 0
+}
+
+main "$@" || exit 1
+exit 0
