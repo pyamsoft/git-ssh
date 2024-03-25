@@ -72,6 +72,9 @@ starts with `git-*`, like `git-ssh`, you can call it as `git ssh` on the CLI.
 This allows it to feel like just another `git` subcommand, and works with all
 of the `git-ssh` commands:
 
+You can automatically add your target key to the running ssh-agent by passing the
+`-a` or `--add` option to `git-ssh export`
+
 ```sh
 $ git ssh create test ~/.ssh/id_my_test.rsa
 $ git ssh export test
@@ -81,14 +84,13 @@ $ eval "$(git ssh export test)"
 
 ### Usage and Options
 ```
-usage: git-ssh
-
-[Commands]
-export <config>           Load a config from CONFIG_DIR to TARGET_CONFIG
-list                      List all configs in CONFIG_DIR
-create <config> <path>    Create a new <config> pointing to file name <path>
-delete <config>           Delete a <config>
-help                      This help
+export <config> [-a|--add]  Export a config into the environment as GIT_SSH_COMMAND
+reset                       Reset GIT_SSH_COMMAND, unsetting an exported configs
+list [--verbose]            List all configs in CONFIG_DIR
+create <config> <path>      Create a new <config> pointing to file name <path>
+delete <config>             Delete a <config>
+help | -h | --help          This help
+version | -v | --version    Display application version
 ```
 
 ### Configuration
