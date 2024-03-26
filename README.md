@@ -84,11 +84,13 @@ $ eval "$(git ssh export test)"
 
 ### Usage and Options
 ```
-export <config> [-a|--add]  Export a config into the environment as GIT_SSH_COMMAND
-reset                       Reset GIT_SSH_COMMAND, unsetting an exported configs
-list [--verbose]            List all configs in CONFIG_DIR
 create <config> <path>      Create a new <config> pointing to file name <path>
 delete <config>             Delete a <config>
+list [--verbose]            List all configs in CONFIG_DIR
+
+export <config> [-a|--add]  Export a config into the environment as GIT_SSH_COMMAND
+reset                       Reset GIT_SSH_COMMAND, unsetting an exported configs
+
 help | -h | --help          This help
 version | -v | --version    Display application version
 ```
