@@ -85,6 +85,23 @@ _list_configs() {
   return 0
 }
 
+
+##
+# Help for the _create function
+_usage_create() {
+  _log "$(cat <<EOF
+
+Usage:
+${APP_NAME} create <config> <path>
+
+Arguments:
+<config>     The name of the ${APP_NAME} config to create.
+<path>       The absolute file path to the SSH private key for this configuration.
+
+EOF
+)"
+}
+
 ##
 # Create a new config
 #
@@ -97,11 +114,13 @@ _create_config() {
 
   if [ -z "${create_config__name}" ]; then
     _log "Missing ${APP_NAME} config name, cannot create."
+    _usage_create || return 1
     return 1
   fi
 
   if [ -z "${create_config__path}" ]; then
     _log "Missing ${APP_NAME} config path, cannot create."
+    _usage_create || return 1
     return 1
   fi
 
@@ -156,6 +175,21 @@ EOF
 }
 
 ##
+# Help for the _delete function
+_usage_delete() {
+  _log "$(cat <<EOF
+
+Usage:
+${APP_NAME} delete <config>
+
+Arguments:
+<config>     The name of the ${APP_NAME} config to delete.
+
+EOF
+)"
+}
+
+##
 # Delete an existing config
 #
 # $1 config name
@@ -165,6 +199,7 @@ _delete_config() {
 
   if [ -z "${delete_config__name}" ]; then
     _log "Missing ${APP_NAME} config name, cannot delete."
+    _usage_delete || return 1
     return 1
   fi
 
@@ -222,6 +257,25 @@ _ensure_agent_added_key() {
 }
 
 ##
+# Help for the _export function
+_usage_export() {
+  _log "$(cat <<EOF
+
+Usage:
+${APP_NAME} export <config> [options]
+
+Arguments:
+<config>      The name of a ${APP_NAME} configuration file.
+              This name should not include any file extensions.
+
+Options:
+[-a | --add]    Add the exported SSH key to the agent if it is not already present.
+
+EOF
+)"
+}
+
+##
 # Output an environment for a config
 #
 # $1 config name
@@ -233,17 +287,20 @@ _export_config() {
 
   if [ -z "${export_config__name}" ]; then
     _log "Missing ${APP_NAME} config name, cannot export."
+    _usage_export || return 1
     return 1
   fi
 
   export_config__file="${CONFIG_DIR}/${export_config__name}.${CONFIG_VERSION}"
   if [ ! -e "${export_config__file}" ]; then
     _log "Missing ${APP_NAME} config at: ${export_config__file}"
+    _usage_export || return 1
     return 1
   fi
 
   if [ ! -r "${export_config__file}" ]; then
     _log "Could not read ${APP_NAME} config at: ${export_config__file}"
+    _usage_export || return 1
     return 1
   fi
 
@@ -252,7 +309,11 @@ _export_config() {
   printf -- '%s\n' "${export_config__env}"
 
   if [ "${export_config__addkey}" = "-a" ] || [ "${export_config__addkey}" = "--add" ]; then
-    _ensure_agent_added_key "${export_config__file}"
+    _ensure_agent_added_key "${export_config__file}" || {
+      _log "Failed to add ${export_config__name} SSH key to agent"
+      _usage_export || return 1
+      return 1
+    }
   fi
 
   unset export_config__addkey
