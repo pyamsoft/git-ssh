@@ -33,6 +33,11 @@ main() {
   fi
 
   _allowed_file="$(_get_allowed_ssh_signers)"
+  if [ ! -e "${_allowed_file}" ]; then
+    _log 'No allowed signers file found. Cannot commit.'
+    return 1
+  fi
+
   _allowed_signers="$(_collect_allowed_signers)"
   _current_keychain="$(_collect_current_keychain)"
 
