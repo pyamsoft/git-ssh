@@ -246,7 +246,7 @@ _ensure_agent_added_key() {
     unset _key
 
     # Not added, so add the key
-    ssh-add -q "${ensure_agent__priv}" >/dev/null || return 1
+    ssh-add "${ensure_agent__priv}" >/dev/null || return 1
 
     unset ensure_agent__allkeys
     unset ensure_agent__key
