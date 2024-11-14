@@ -328,6 +328,7 @@ _export_config() {
 
 _reset_environment() {
   # Reset the environment
+  printf -- 'export GIT_SSH_COMMAND=\n'
   printf -- 'unset GIT_SSH_COMMAND\n'
   return 0
 }
