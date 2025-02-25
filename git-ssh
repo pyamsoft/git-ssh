@@ -87,11 +87,11 @@ _list_configs() {
   return 0
 }
 
-
 ##
 # Help for the _create function
 _usage_create() {
-  _log "$(cat <<EOF
+  _log "$(
+    cat <<EOF
 
 Usage:
 ${APP_NAME} create <config> <path>
@@ -101,7 +101,7 @@ Arguments:
 <path>       The absolute file path to the SSH private key for this configuration.
 
 EOF
-)"
+  )"
 }
 
 ##
@@ -179,7 +179,8 @@ EOF
 ##
 # Help for the _delete function
 _usage_delete() {
-  _log "$(cat <<EOF
+  _log "$(
+    cat <<EOF
 
 Usage:
 ${APP_NAME} delete <config>
@@ -188,7 +189,7 @@ Arguments:
 <config>     The name of the ${APP_NAME} config to delete.
 
 EOF
-)"
+  )"
 }
 
 ##
@@ -225,7 +226,7 @@ _delete_config() {
 # $1 config keyfile path
 _ensure_agent_added_key() {
   ensure_agent__path="$1"
-  ensure_agent__priv="$(grep "IdentityFile" < "${ensure_agent__path}" | awk '{ print $2 }')"
+  ensure_agent__priv="$(grep "IdentityFile" <"${ensure_agent__path}" | awk '{ print $2 }')"
 
   # Evaluate in shell so ~ becomes $HOME
   ensure_agent__priv="$(sh -c "realpath ${ensure_agent__priv}")"
@@ -233,7 +234,7 @@ _ensure_agent_added_key() {
 
   # If the pubkey exists, check if it's already in the agent
   if [ -f "${ensure_agent__pub}" ]; then
-    ensure_agent__key="$(awk '{ print $2 }' < "${ensure_agent__pub}")"
+    ensure_agent__key="$(awk '{ print $2 }' <"${ensure_agent__pub}")"
     ensure_agent__allkeys="$(ssh-add -L | awk '{ print $2 }')"
     for _key in ${ensure_agent__allkeys}; do
 
@@ -261,7 +262,8 @@ _ensure_agent_added_key() {
 ##
 # Help for the _export function
 _usage_export() {
-  _log "$(cat <<EOF
+  _log "$(
+    cat <<EOF
 
 Usage:
 ${APP_NAME} export <config> [options]
@@ -274,7 +276,7 @@ Options:
 [-a | --add]    Add the exported SSH key to the agent if it is not already present.
 
 EOF
-)"
+  )"
 }
 
 ##
