@@ -165,6 +165,7 @@ Host *
     # For more info: https://gist.github.com/ozbillwang/005bd1dfc597a2f3a00148834ad3e551
     ##
     # ProxyCommand /usr/bin/socat STDIO PROXY:<hostname>:%h:%p,proxyport=<port> 
+    # ProxyCommand /usr/bin/socat STDIO SOCKS4A:<hostname>:%h:%p,socksport=<port>
 EOF
   )" >"${create_config__file}" || return 1
   _log "Created new ${APP_NAME} config ${create_config__name} at ${create_config__file}"
