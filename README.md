@@ -1,4 +1,5 @@
 # git-ssh
+
 An ssh-key selection wrapper for git
 
 ### Why
@@ -39,6 +40,7 @@ For example, lets say you have 2 different ssh keys at `$HOME/.ssh`
 `id_git_personal` and `id_git_company`
 
 To make git use your personal id for a project, creat it via
+
 ```sh
 $ git-ssh create personal $HOME/.ssh/id_git_personal
 ```
@@ -50,6 +52,7 @@ $ eval "$(git-ssh export personal)"
 ```
 
 This will load up your environment with the following:
+
 ```sh
 export GIT_SSH_COMMAND='ssh -F "$HOME/.config/git-ssh/personal.2"'
 ```
@@ -83,6 +86,7 @@ $ eval "$(git ssh export test)"
 ```
 
 ### Usage and Options
+
 ```
 create <config> <path>      Create a new <config> pointing to file name <path>
 delete <config>             Delete a <config>
@@ -120,7 +124,7 @@ issue ticket.
 GPLv2
 
 ```
-  Copyright (C) 2023  pyamsoft
+  Copyright (C) 2025 pyamsoft
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
