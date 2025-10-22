@@ -21,7 +21,7 @@ LC_ALL=C
 export LC_ALL
 
 readonly APP_NAME="git-ssh"
-readonly VERSION="3.1.1"
+readonly VERSION="3.1.2"
 readonly CONFIG_VERSION=2
 
 # Where our configs live
