@@ -375,6 +375,7 @@ main() {
     _create_config "${main__config}" "${main__file_path}" || return 1
     ;;
   delete)
+    main__config="$2"
     _delete_config "${main__config}" || return 1
     ;;
   reset)
