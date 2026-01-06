@@ -1,0 +1,191 @@
+#!/bin/sh
+
+readonly BASENAME="git-ssh"
+readonly NAME="${BASENAME}-install-hooks"
+readonly VERSION="0.0.1"
+
+readonly HOOK_SOURCE="${HOOK_SOURCE:-/usr/share/${BASENAME}/hooks}"
+
+_log() {
+  _msg="$1"
+  shift
+
+  printf -- "[%s] ${_msg}\n" "${NAME}" "$@"
+
+  unset _msg
+  return 0
+}
+
+##
+# Error Log
+#
+# Accepts arguments in the same format as printf
+# $1 message
+# $@ arguments
+##
+_elog() {
+  _log "$@" 1>&2 || return 1
+  return 0
+}
+
+_collect_hooks() {
+  _hooks=""
+  for _h in "${HOOK_SOURCE}"/*; do
+    if [ -r "${_h}" ]; then
+      if [ -z "${_hooks}" ]; then
+        _hooks="${_h}"
+      else
+        _hooks="${_hooks}
+${_h}"
+      fi
+    fi
+    unset _h
+  done
+  unset _h
+
+  printf -- '%s\n' "${_hooks}"
+
+  unset _hooks
+  return 0
+}
+
+_inform_hooks() {
+  printf -- 'The following files will be installed:\n'
+  _collect_hooks || return 1
+  return 0
+}
+
+_usage() {
+  printf -- '%s\n' "$(
+    cat <<EOF
+${NAME} [${VERSION}] <command>
+
+This script will install/overwrite your git repository pre-commit hooks
+to check and enforce that all committers have a signed SSH key present.
+
+[Commands]
+install [--force]    Install hooks (--force will overwrite existing hooks)
+list                 List hooks
+
+[Hooks]
+$(_inform_hooks)
+EOF
+  )"
+}
+
+_do_install() {
+  _install_target="$1"
+  _log 'Installing %s' "${_install_target}"
+
+  install --target-directory ".git/hooks" "${_install_target}" || {
+    _elog 'Failed to install %s' "${_install_target}"
+    return 1
+  }
+
+  unset _install_target
+  return 0
+}
+
+_is_git_project() {
+  [ -d ".git" ] && [ -d ".git/hooks" ]
+}
+
+_install() {
+  _forced="$1"
+
+  for _hook in $(_collect_hooks); do
+    case "${_hook}" in
+    *.pre-commit)
+      _do_install "${_hook}" || {
+        _elog 'Failed to install hook %s' "$(basename "${_hook}")"
+        unset _hook
+        unset _forced
+        return 1
+      }
+      ;;
+    *)
+      if [ -z "${_forced}" ] || [ "${_forced}" -eq 0 ]; then
+        # Don't use _log so we don't force a newline
+        printf -- '[%s] Are you sure you want to overwrite the existing hook %s? (y/N) ' "${NAME}" "$(basename "${_hook}")"
+
+        IFS= read -r _yes
+        case "${_yes}" in
+        y | Y | yes | YES)
+          _do_install "${_hook}" || {
+            _elog 'Failed to install hook %s' "$(basename "${_hook}")"
+            unset _hook
+            unset _forced
+            return 1
+          }
+          ;;
+        *)
+          _log 'Skipping install of hook %s' "$(basename "${_hook}")"
+          continue
+          ;;
+        esac
+      else
+        _do_install "${_hook}" || {
+          _elog 'Failed to install hook %s' "$(basename "${_hook}")"
+          unset _hook
+          unset _forced
+          return 1
+        }
+      fi
+      ;;
+    esac
+    unset _hook
+  done
+  unset _hook
+
+  unset _forced
+  return 0
+}
+
+_list() {
+  _inform_hooks || return 1
+  return 0
+}
+
+main() {
+  _cmd=""
+  _force_install=0
+
+  while [ -n "$1" ]; do
+    case "$1" in
+    install)
+      _cmd="install"
+      ;;
+    list)
+      _cmd="list"
+      ;;
+    --force)
+      _force_install=1
+      ;;
+    esac
+
+    shift
+  done
+
+  case "${_cmd}" in
+  install)
+    if ! _is_git_project; then
+      _elog 'Cannot install hook. This is not a git project?'
+      return 1
+    fi
+
+    _install "${_force_install}" || return 1
+    ;;
+  list)
+    _list || return 1
+    ;;
+  *)
+    _usage || return 1
+    return 1
+    ;;
+  esac
+
+  return 0
+}
+
+main "$@" || exit 1
+exit 0
