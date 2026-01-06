@@ -72,8 +72,8 @@ _get_allowed_ssh_signers() {
 _collect_allowed_signers() {
   _collected="$(cat "${_allowed_file}")"
 
-  # If your signer file has something like 'namespace="git"', then there is a fourth column
-  if printf -- '%s' "${_collected}" | grep -q 'namespace=' >/dev/null 2>&1; then
+  # If your signer file has something like 'namespaces="git"', then there is a fourth column
+  if printf -- '%s' "${_collected}" | grep -q 'namespaces=' >/dev/null 2>&1; then
     printf -- '%s' "${_collected}" | awk '{ print $4 }'
   else
     printf -- '%s' "${_collected}" | awk '{ print $3 }'
@@ -99,8 +99,6 @@ main() {
 
   _allowed_signers="$(_collect_allowed_signers)"
   _current_keychain="$(_collect_current_keychain)"
-
-  echo "ALLOW: ${_allowed_signers}"
 
   if [ -z "${_allowed_signers}" ]; then
     _elog 'No allowed signers found. Cannot commit.'
