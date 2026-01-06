@@ -25,10 +25,10 @@ main() {
   LC_ALL=C
   export LC_ALL
 
-  for _hook in "${HOOK_DIR}"/*.pre-commit; do
+  for _hook in "${HOOK_DIR}"/*.prepare-commit-msg; do
     # No hooks
-    if [ "${_hook}" = './*.pre-commit' ]; then
-      return 0
+    if [ ! -r "${_hook}" ]; then
+      continue
     fi
 
     if [ -x "${_hook}" ]; then

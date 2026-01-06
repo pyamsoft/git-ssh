@@ -44,15 +44,41 @@ _is_git_ssh_signed() {
   [ "$(git config --get 'gpg.format')" = "ssh" ]
 }
 
+_extract_tilde() {
+  _tilde="$1"
+
+  # shellcheck disable=SC2088
+  case "${_tilde}" in
+  "~" | "~/"*)
+    printf -- '%s' "${HOME}/${_tilde#\~}"
+    ;;
+  *)
+    printf -- '%s' "${_tilde}"
+    ;;
+  esac
+  unset _tilde
+  return 0
+}
+
 _get_allowed_ssh_signers() {
   _signers_file="$(git config --get 'gpg.ssh.allowedsignersfile')"
 
-  # Use the shell to evaluate a potential ~ in path instead of $HOME
-  sh -c "realpath ${_signers_file}"
+  # Fix a potential ~ in path instead of $HOME
+  _signers_file="$(_extract_tilde "${_signers_file}")"
+
+  realpath "${_signers_file}"
 }
 
 _collect_allowed_signers() {
-  awk '{ print $3 }' <"${_allowed_file}"
+  _collected="$(cat "${_allowed_file}")"
+
+  # If your signer file has something like 'namespace="git"', then there is a fourth column
+  if printf -- '%s' "${_collected}" | grep -q 'namespace=' >/dev/null 2>&1; then
+    printf -- '%s' "${_collected}" | awk '{ print $4 }'
+  else
+    printf -- '%s' "${_collected}" | awk '{ print $3 }'
+  fi
+  unset _collected
 }
 
 _collect_current_keychain() {
@@ -73,6 +99,8 @@ main() {
 
   _allowed_signers="$(_collect_allowed_signers)"
   _current_keychain="$(_collect_current_keychain)"
+
+  echo "ALLOW: ${_allowed_signers}"
 
   if [ -z "${_allowed_signers}" ]; then
     _elog 'No allowed signers found. Cannot commit.'

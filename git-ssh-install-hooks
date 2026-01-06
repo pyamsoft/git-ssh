@@ -61,7 +61,7 @@ _usage() {
     cat <<EOF
 ${NAME} [${VERSION}] <command>
 
-This script will install/overwrite your git repository pre-commit hooks
+This script will install/overwrite your git repository prepare-commit-msg hooks
 to check and enforce that all committers have a signed SSH key present.
 
 [Commands]
@@ -99,7 +99,7 @@ _install() {
 
   for _hook in $(_collect_hooks); do
     case "${_hook}" in
-    *.pre-commit)
+    *.prepare-commit-msg)
       _do_install "${_hook}" || {
         _elog 'Failed to install hook %s' "$(basename "${_hook}")"
         unset _hook
