@@ -11,7 +11,7 @@ pkgname=git-ssh-git
 # shellcheck disable=SC2034
 pkgdesc="An SSH key manager for git"
 # shellcheck disable=SC2034
-pkgver=r323.5323ac3
+pkgver=r324.39e6a96
 # shellcheck disable=SC2034
 pkgrel=1
 # shellcheck disable=SC2034
@@ -86,5 +86,5 @@ package() {
   mkdir -p "${pkgdir}/usr/share/${_gitname}/hooks"
 
   cp "${_install_hooks}" "${pkgdir}/usr/bin/${_install_hooks}"
-  cp -r hooks "${pkgdir}/usr/share/${_gitname}/hooks"
+  cp -r hooks "${pkgdir}/usr/share/${_gitname}"
 }
