@@ -5,6 +5,7 @@ readonly NAME="${BASENAME}-install-hooks"
 readonly VERSION="0.0.1"
 
 readonly HOOK_SOURCE="${HOOK_SOURCE:-/usr/share/${BASENAME}/hooks}"
+readonly GIT_DIR="${GIT_DIR:-.git}"
 
 _log() {
   _msg="$1"
@@ -77,7 +78,7 @@ _do_install() {
   _install_target="$1"
   _log 'Installing %s' "${_install_target}"
 
-  install --target-directory ".git/hooks" "${_install_target}" || {
+  install --target-directory "${GIT_DIR}/hooks" "${_install_target}" || {
     _elog 'Failed to install %s' "${_install_target}"
     return 1
   }
@@ -87,7 +88,7 @@ _do_install() {
 }
 
 _is_git_project() {
-  [ -d ".git" ] && [ -d ".git/hooks" ]
+  [ -d "${GIT_DIR}" ] && [ -d "${GIT_DIR}/hooks" ]
 }
 
 _install() {
