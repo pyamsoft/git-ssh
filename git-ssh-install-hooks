@@ -76,10 +76,13 @@ EOF
 
 _do_install() {
   _install_target="$1"
-  _log 'Installing %s' "${_install_target}"
+
+  _log 'Installing %s -> %s' "${_install_target}" "${GIT_DIR}/hooks"
 
   cp -f "${_install_target}" "${GIT_DIR}/hooks" || {
     _elog 'Failed to install %s' "${_install_target}"
+
+    unset _install_target
     return 1
   }
 
