@@ -82,7 +82,6 @@ main() {
   for _allowed in ${_allowed_signers}; do
     for _current in ${_current_keychain}; do
       if [ "${_allowed}" = "${_current}" ]; then
-        _log "Signer is allowed to make commits: %s" "${_current}"
         return 0
       fi
       unset _current
