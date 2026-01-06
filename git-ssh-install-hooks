@@ -78,7 +78,7 @@ _do_install() {
   _install_target="$1"
   _log 'Installing %s' "${_install_target}"
 
-  install --target-directory "${GIT_DIR}/hooks" "${_install_target}" || {
+  cp -f "${_install_target}" "${GIT_DIR}/hooks" || {
     _elog 'Failed to install %s' "${_install_target}"
     return 1
   }

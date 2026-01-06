@@ -31,8 +31,13 @@ main() {
       return 0
     fi
 
-    # Run the hook
-    "${_hook}" "$@" || return 1
+    if [ -x "${_hook}" ]; then
+      # Run the hook directly
+      "${_hook}" "$@" || return 1
+    else
+      # Otherwise run with shell if its not executable
+      /bin/sh "${_hook}" "$@" || return 1
+    fi
     unset _hook
   done
   unset _hook
