@@ -106,24 +106,34 @@ _install() {
       ;;
     *)
       if [ -z "${_forced}" ] || [ "${_forced}" -eq 0 ]; then
-        # Don't use _log so we don't force a newline
-        printf -- '[%s] Are you sure you want to overwrite the existing hook %s? (y/N) ' "${NAME}" "$(basename "${_hook}")"
+        # If the file already exists, prompt user
+        if [ -r "${GIT_DIR}/hooks/$(basename "${_hook}")" ]; then
+          # Don't use _log so we don't force a newline
+          printf -- '[%s] Are you sure you want to overwrite the existing hook %s? (y/N) ' "${NAME}" "$(basename "${_hook}")"
 
-        IFS= read -r _yes
-        case "${_yes}" in
-        y | Y | yes | YES)
+          IFS= read -r _yes
+          case "${_yes}" in
+          y | Y | yes | YES)
+            _do_install "${_hook}" || {
+              _elog 'Failed to install hook %s' "$(basename "${_hook}")"
+              unset _hook
+              unset _forced
+              return 1
+            }
+            ;;
+          *)
+            _log 'Skipping install of hook %s' "$(basename "${_hook}")"
+            continue
+            ;;
+          esac
+        else
           _do_install "${_hook}" || {
             _elog 'Failed to install hook %s' "$(basename "${_hook}")"
             unset _hook
             unset _forced
             return 1
           }
-          ;;
-        *)
-          _log 'Skipping install of hook %s' "$(basename "${_hook}")"
-          continue
-          ;;
-        esac
+        fi
       else
         _do_install "${_hook}" || {
           _elog 'Failed to install hook %s' "$(basename "${_hook}")"
