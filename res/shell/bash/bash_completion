@@ -21,10 +21,11 @@ _git_ssh() {
   local prevprev="${COMP_WORDS[COMP_CWORD - 2]}"
 
   local actions="export list create delete help version"
-  local short_options="-h -v"
+  local short_options="-H -V"
   local long_options="--help --version"
 
-  local list_options="--verbose"
+  local export_options="-a --add"
+  local list_options="-v --verbose"
 
   # Find and populate git-ssh configs
   local git_ssh_configs
@@ -38,7 +39,10 @@ _git_ssh() {
   fi
 
   if [[ "${cur}" = --* ]]; then
-    if [[ "${prev}" = "list" ]]; then
+    if [[ "${prev}" = "export" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${export_options}" -- "${cur}"))
+    elif [[ "${prev}" = "list" ]]; then
       # shellcheck disable=SC2207
       COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
     else
@@ -46,7 +50,10 @@ _git_ssh() {
       COMPREPLY=($(compgen -W "${long_options}" -- "${cur}"))
     fi
   elif [[ "${cur}" = -* ]]; then
-    if [[ "${prev}" = "list" ]]; then
+    if [[ "${prev}" = "export" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${export_options}" -- "${cur}"))
+    elif [[ "${prev}" = "list" ]]; then
       # shellcheck disable=SC2207
       COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
     else
@@ -54,7 +61,13 @@ _git_ssh() {
       COMPREPLY=($(compgen -W "${long_options}" -- "${cur}") $(compgen -W "${short_options}" -- "${cur}"))
     fi
   else
-    if [[ "${prev}" = "export" ]] || [[ "${prev}" = "delete" ]]; then
+    if [[ "${prev}" = "export" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${git_ssh_configs} ${export_options}" -- "${cur}"))
+    elif [[ "${prev}" = "-a" ]] || [[ "${prev}" = "--add" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
+    elif [[ "${prev}" = "delete" ]]; then
       # shellcheck disable=SC2207
       COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
     elif [[ "${prev}" = "help" ]]; then
@@ -66,7 +79,13 @@ _git_ssh() {
       COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
     elif [[ "${prev}" = "create" ]] || [[ "${prevprev}" = "create" ]]; then
       COMPREPLY=()
-    elif [[ "${cur}" = "export" ]] || [[ "${cur}" = "delete" ]]; then
+    elif [[ "${cur}" = "export" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${git_ssh_configs} ${export_options}" -- "${cur}"))
+    elif [[ "${cur}" = "-a" ]] || [[ "${cur}" = "--add" ]]; then
+      # shellcheck disable=SC2207
+      COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
+    elif [[ "${cur}" = "delete" ]]; then
       # shellcheck disable=SC2207
       COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
     elif [[ "${cur}" = "help" ]]; then
