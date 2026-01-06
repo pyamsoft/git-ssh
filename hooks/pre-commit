@@ -32,7 +32,7 @@ main() {
     fi
 
     # Run the hook
-    sh -c "${_hook} $*" || return 1
+    "${_hook}" "$@" || return 1
     unset _hook
   done
   unset _hook
