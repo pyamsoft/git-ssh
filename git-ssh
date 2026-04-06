@@ -271,7 +271,9 @@ _delete_config() {
 # $1 config keyfile path
 _ensure_agent_added_key() {
   ensure_agent__path="$1"
-  ensure_agent__priv="$(grep "IdentityFile" <"${ensure_agent__path}" | awk '{ print $2 }')"
+
+  # Locate the IdentityFile from the ssh configuration
+  ensure_agent__priv=$(awk '/^[[:space:]]*IdentityFile[[:space:]]+/ { print $2; exit; }' "${ensure_agent__path}")
 
   # Do not evaluate in a shell since that could lead to command execution
   # instead, we replace ~/ with the expanded ${HOME} variable
