@@ -283,15 +283,19 @@ _ensure_agent_added_key() {
   # If the pubkey exists, check if it's already in the agent
   if [ -f "${ensure_agent__pub}" ]; then
     ensure_agent__key="$(awk '{ print $2 }' <"${ensure_agent__pub}")"
-    ensure_agent__allkeys="$(ssh-add -L | awk '{ print $2 }')"
-    for _key in ${ensure_agent__allkeys}; do
-      # Found key, don't need anything
-      if [ "${ensure_agent__key}" = "${_key}" ]; then
-        return 0
-      fi
+
+    # Dump all known keys. If agent is not running, this loop will not run.
+    ensure_agent__allkeys="$(ssh-add -L 2>/dev/null | awk '{ print $2 }')"
+    if [ -n "${ensure_agent__allkeys}" ]; then
+      for _key in ${ensure_agent__allkeys}; do
+        # Found key, don't need anything
+        if [ "${ensure_agent__key}" = "${_key}" ]; then
+          return 0
+        fi
+        unset _key
+      done
       unset _key
-    done
-    unset _key
+    fi
 
     # Not added, so add the key
     ssh-add "${ensure_agent__priv}" >/dev/null || return 1
