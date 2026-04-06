@@ -84,6 +84,12 @@ _list_configs() {
   # Only perform counting if we are NOT in verbose mode
   if ! { [ -n "${list_configs__verbose}" ] && { [ "${list_configs__verbose}" = "-v" ] || [ "${list_configs__verbose}" = "--verbose" ]; }; }; then
     for _config in "${CONFIG_DIR}"/*."${CONFIG_VERSION}"; do
+      # Make sure a file exists
+      if [ ! -e "${_config}" ]; then
+        unset _config
+        continue
+      fi
+
       _config_namelen="$(printf -- '%s' "$(basename "${_config}")" | wc -m)"
       if [ "${_config_namelen}" -gt "${list_configs__spacecount}" ]; then
         list_configs__spacecount="${_config_namelen}"
@@ -94,6 +100,12 @@ _list_configs() {
   fi
 
   for _config in "${CONFIG_DIR}"/*."${CONFIG_VERSION}"; do
+    # Make sure a file exists
+    if [ ! -e "${_config}" ]; then
+      unset _config
+      continue
+    fi
+
     if { [ -n "${list_configs__verbose}" ] && { [ "${list_configs__verbose}" = "-v" ] || [ "${list_configs__verbose}" = "--verbose" ]; }; }; then
       _log 'Config: %s [%s]\n' "$(basename "${_config}")" "${_config}"
 
@@ -167,7 +179,7 @@ _create_config() {
 
   create_config__file="${CONFIG_DIR}/${create_config__name}.${CONFIG_VERSION}"
   if [ -e "${create_config__file}" ]; then
-    _log 'Config already exists at %s' "${create_config__file}."
+    _log 'Config already exists at %s' "${create_config__file}"
     return 1
   fi
 
