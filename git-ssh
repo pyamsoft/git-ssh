@@ -51,8 +51,7 @@ _log() {
 ##
 _print_usage() {
   _print_version || return 1
-  printf -- '%s\n' "$(
-    cat <<EOF
+  cat 1>&2 <<EOF
 
 [Environment]
 CONFIG_DIR=${CONFIG_DIR}
@@ -69,7 +68,6 @@ reset                       Reset GIT_SSH_COMMAND, unsetting an exported configs
 help | -H | --help          This help
 version | -V | --version    Display application version
 EOF
-  )" 1>&2
   return 0
 }
 
@@ -129,8 +127,7 @@ _list_configs() {
 ##
 # Help for the _create function
 _usage_create() {
-  printf -- '%s\n' "$(
-    cat <<EOF
+  cat 1>&2 <<EOF
 
 Usage:
 ${APP_NAME} create <config> <path>
@@ -140,7 +137,6 @@ Arguments:
 <path>       The absolute file path to the SSH private key for this configuration.
 
 EOF
-  )" 1>&2
 }
 
 ##
@@ -166,7 +162,14 @@ _create_config() {
   fi
 
   # Use the absolute path
-  create_config__path="$(realpath "${create_config__path}")"
+  create_config__path_orig="${create_config__path}"
+  create_config__path="$(realpath -- "${create_config__path}")" || {
+    _log 'Failed to locate ssh keyfile: %s, cannot create config' "${create_config__path_orig}"
+    unset create_config__path_orig
+    return 1
+  }
+  unset create_config__path_orig
+
   if [ ! -e "${create_config__path}" ]; then
     _log 'ssh keyfile does not exist at path: %s, cannot create config' "${create_config__path}"
     return 1
@@ -183,8 +186,7 @@ _create_config() {
     return 1
   fi
 
-  printf -- '%s\n' "$(
-    cat <<EOF
+  cat >"${create_config__file}" <<EOF || return 1
 # Created by ${APP_NAME} ${VERSION}
 #
 # You may modify this file, but it may be overwritten without warning.
@@ -207,7 +209,6 @@ Host *
     # ProxyCommand /usr/bin/socat STDIO PROXY:<hostname>:%h:%p,proxyport=<port> 
     # ProxyCommand /usr/bin/socat STDIO SOCKS4A:<hostname>:%h:%p,socksport=<port>
 EOF
-  )" >"${create_config__file}" || return 1
 
   _log 'Created new config %s at %s' "${create_config__name}" "${create_config__file}"
 
@@ -220,8 +221,7 @@ EOF
 ##
 # Help for the _delete function
 _usage_delete() {
-  printf -- '%s\n' "$(
-    cat <<EOF
+  cat 1>&2 <<EOF
 
 Usage:
 ${APP_NAME} delete <config>
@@ -230,7 +230,6 @@ Arguments:
 <config>     The name of the ${APP_NAME} config to delete.
 
 EOF
-  )"
 }
 
 ##
@@ -305,8 +304,7 @@ _ensure_agent_added_key() {
 ##
 # Help for the _export function
 _usage_export() {
-  printf -- '%s\n' "$(
-    cat <<EOF
+  cat 1>&2 <<EOF
 
 Usage:
 ${APP_NAME} export [options] <config>
@@ -319,7 +317,6 @@ Options:
 [-a | --add]    Add the exported SSH key to the agent if it is not already present.
 
 EOF
-  )" 1>&2
 }
 
 ##
