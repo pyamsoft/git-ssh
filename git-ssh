@@ -269,8 +269,11 @@ _ensure_agent_added_key() {
   ensure_agent__path="$1"
   ensure_agent__priv="$(grep "IdentityFile" <"${ensure_agent__path}" | awk '{ print $2 }')"
 
-  # Evaluate in shell so ~ becomes $HOME
-  ensure_agent__priv="$(sh -c "realpath ${ensure_agent__priv}")"
+  # Do not evaluate in a shell since that could lead to command execution
+  # instead, we replace ~/ with the expanded ${HOME} variable
+  ensure_agent__priv="$(printf '%s\n' "${ensure_agent__priv}" | sed "s|^~|$HOME|")"
+
+  ensure_agent__priv="$(realpath -- "${ensure_agent__priv}")"
   ensure_agent__pub="${ensure_agent__priv}.pub"
 
   # If the pubkey exists, check if it's already in the agent
