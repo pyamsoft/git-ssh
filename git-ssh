@@ -88,7 +88,10 @@ _list_configs() {
         continue
       fi
 
-      _config_namelen="$(printf -- '%s' "$(basename "${_config}")" | wc -m)"
+      _config_name="$(basename -- "${_config}")"
+      _config_namelen="${#_config_name}"
+      unset _config_name
+
       if [ "${_config_namelen}" -gt "${list_configs__spacecount}" ]; then
         list_configs__spacecount="${_config_namelen}"
       fi
@@ -105,15 +108,17 @@ _list_configs() {
     fi
 
     if { [ -n "${list_configs__verbose}" ] && { [ "${list_configs__verbose}" = "-v" ] || [ "${list_configs__verbose}" = "--verbose" ]; }; }; then
-      _log 'Config: %s [%s]\n' "$(basename "${_config}")" "${_config}"
+      _log 'Config: %s [%s]\n' "$(basename -- "${_config}")" "${_config}"
 
       printf -- '%s\n\n' "$(cat "${_config}")" 1>&2
     else
-      _config_namelen="$(printf -- '%s' "$(basename "${_config}")" | wc -m)"
+      _config_name="$(basename -- "${_config}")"
+      _config_namelen="${#_config_name}"
       _config_spacelen="$((list_configs__spacecount - _config_namelen))"
-      _log "%s %s [%s]" "$(basename "${_config}")" "$(printf -- '%*s ' "${_config_spacelen}" '')" "${_config}"
+      _log "%s %s [%s]" "${_config_name}" "$(printf -- '%*s ' "${_config_spacelen}" '')" "${_config}"
       unset _config_spacelen
       unset _config_namelen
+      unset _config_name
     fi
     unset _config
   done
