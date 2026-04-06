@@ -88,7 +88,7 @@ _list_configs() {
         continue
       fi
 
-      _config_name="$(basename -- "${_config}")"
+      _config_name="${_config##*/}"
       _config_namelen="${#_config_name}"
       unset _config_name
 
@@ -107,19 +107,19 @@ _list_configs() {
       continue
     fi
 
+    _config_name="${_config##*/}"
     if { [ -n "${list_configs__verbose}" ] && { [ "${list_configs__verbose}" = "-v" ] || [ "${list_configs__verbose}" = "--verbose" ]; }; }; then
-      _log 'Config: %s [%s]\n' "$(basename -- "${_config}")" "${_config}"
+      _log 'Config: %s [%s]\n' "${_config_name}" "${_config}"
 
       printf -- '%s\n\n' "$(cat "${_config}")" 1>&2
     else
-      _config_name="$(basename -- "${_config}")"
       _config_namelen="${#_config_name}"
       _config_spacelen="$((list_configs__spacecount - _config_namelen))"
       _log "%s %s [%s]" "${_config_name}" "$(printf -- '%*s ' "${_config_spacelen}" '')" "${_config}"
       unset _config_spacelen
       unset _config_namelen
-      unset _config_name
     fi
+    unset _config_name
     unset _config
   done
   unset _config
