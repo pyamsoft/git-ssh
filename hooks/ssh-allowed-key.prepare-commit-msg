@@ -63,6 +63,10 @@ _extract_tilde() {
 _get_allowed_ssh_signers() {
   _signers_file="$(git config --get 'gpg.ssh.allowedsignersfile')"
 
+  if [ -z "${_signers_file}" ]; then
+    return 1
+  fi
+
   # Fix a potential ~ in path instead of $HOME
   _signers_file="$(_extract_tilde "${_signers_file}")"
 
@@ -91,8 +95,11 @@ main() {
     return 0
   fi
 
-  _allowed_file="$(_get_allowed_ssh_signers)"
-  if [ ! -e "${_allowed_file}" ]; then
+  _allowed_file="$(_get_allowed_ssh_signers)" || {
+    _elog 'gpg.ssh.allowedSignersFile is not configured. Cannot commit.'
+    return 1
+  }
+  if [ ! -f "${_allowed_file}" ]; then
     _elog 'No allowed signers file found. Cannot commit.'
     return 1
   fi
