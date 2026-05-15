@@ -108,7 +108,7 @@ _install() {
       }
       ;;
     *)
-      if [ -z "${_forced}" ] || [ "${_forced}" -eq 0 ]; then
+      if [ "${_forced}" -eq 0 ]; then
         # If the file already exists, prompt user
         if [ -r "${GIT_DIR}/hooks/$(basename "${_hook}")" ]; then
           # Don't use _log so we don't force a newline
