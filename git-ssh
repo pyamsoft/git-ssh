@@ -453,10 +453,6 @@ main() {
       _reset_environment || return 1
       return 0
       ;;
-    -a | --add)
-      main__export_add_key="${main__command}"
-      shift
-      ;;
     -v | --verbose)
       main__list_configs_verbose="${main__command}"
       shift
