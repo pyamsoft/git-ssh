@@ -306,7 +306,7 @@ _ensure_agent_added_key() {
   ensure_agent__path="$1"
 
   # Locate the IdentityFile from the ssh configuration
-  ensure_agent__priv=$(awk '/^[[:space:]]*IdentityFile[[:space:]]+/ { print $2; exit; }' "${ensure_agent__path}")
+  ensure_agent__priv=$(sed -n '/^[[:space:]]*IdentityFile[[:space:]]\{1,\}/{s/^[[:space:]]*IdentityFile[[:space:]]\{1,\}//;p;q}' "${ensure_agent__path}")
 
   # Do not evaluate in a shell since that could lead to command execution
   # instead, we replace ~/ with the expanded ${HOME} variable
