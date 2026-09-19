@@ -13,3 +13,6 @@ __pycache__
 build
 dist
 *.egg-info
+
+# NodeJS (I know, I know (it's for bats))
+node_modules

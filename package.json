@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "bats": "1.13.0",
+    "npm-check-updates": "23.1.0"
+  }
+}
