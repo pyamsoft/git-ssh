@@ -1,18 +1,6 @@
-# Ignore virtual environment
-venv
-
 # Ignore idea folder
 .idea/*
 !.idea/copyright
-
-# Ignore build caches and files
-*.pyc
-__pycache__
-
-# Builds
-build
-dist
-*.egg-info
 
 # NodeJS (I know, I know (it's for bats))
 node_modules
