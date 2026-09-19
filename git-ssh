@@ -72,6 +72,21 @@ EOF
 }
 
 ##
+# Validate that a config name cannot escape CONFIG_DIR when concatenated
+# into a path (e.g. "../../etc/passwd" or an absolute path).
+#
+# $1 config name
+##
+_valid_config_name() {
+  case "$1" in
+  */* | . | ..)
+    return 1
+    ;;
+  esac
+  return 0
+}
+
+##
 # List configs
 ##
 _list_configs() {
@@ -167,6 +182,12 @@ _create_config() {
     return 1
   fi
 
+  if ! _valid_config_name "${create_config__name}"; then
+    _log 'Config name must not contain "/" or be "." or "..": %s' "${create_config__name}"
+    _usage_create || return 1
+    return 1
+  fi
+
   # Use the absolute path
   create_config__path_orig="${create_config__path}"
   create_config__path="$(realpath -- "${create_config__path}")" || {
@@ -248,6 +269,12 @@ _delete_config() {
 
   if [ -z "${delete_config__name}" ]; then
     _log 'Missing config name, cannot delete.'
+    _usage_delete || return 1
+    return 1
+  fi
+
+  if ! _valid_config_name "${delete_config__name}"; then
+    _log 'Config name must not contain "/" or be "." or "..": %s' "${delete_config__name}"
     _usage_delete || return 1
     return 1
   fi
@@ -343,6 +370,12 @@ _export_config() {
 
   if [ -z "${export_config__name}" ]; then
     _log 'Missing config name, cannot export.'
+    _usage_export || return 1
+    return 1
+  fi
+
+  if ! _valid_config_name "${export_config__name}"; then
+    _log 'Config name must not contain "/" or be "." or "..": %s' "${export_config__name}"
     _usage_export || return 1
     return 1
   fi
