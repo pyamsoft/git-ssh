@@ -461,25 +461,71 @@ main() {
   main__export_add_key=""
 
   if [ -z "${main__command}" ]; then
-    _print_usage || return 1
+    _print_usage || {
+      unset main__command
+      unset main__export_add_key
+      return 1
+    }
+
+    unset main__command
+    unset main__export_add_key
     return 0
   fi
 
   while [ -n "${main__command}" ]; do
     case "${main__command}" in
     help | -H | --help)
-      _print_usage || return 1
+      _print_usage || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 0
       ;;
     version | -V | --version)
-      _print_version || return 1
+      _print_version || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 0
       ;;
     list)
       if [ -z "${main__list_configs_verbose}" ]; then
         main__list_configs_verbose="$2"
       fi
-      _list_configs "${main__list_configs_verbose}" || return 1
+      _list_configs "${main__list_configs_verbose}" || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 0
       ;;
     export)
@@ -494,22 +540,74 @@ main() {
         main__export_add_key="$3"
         ;;
       esac
-      _export_config "${main__config}" "${main__export_add_key}" || return 1
+      _export_config "${main__config}" "${main__export_add_key}" || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 0
       ;;
     create)
       main__config="$2"
       main__file_path="$3"
-      _create_config "${main__config}" "${main__file_path}" || return 1
+      _create_config "${main__config}" "${main__file_path}" || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 0
       ;;
     delete)
       main__config="$2"
-      _delete_config "${main__config}" || return 1
+      _delete_config "${main__config}" || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 0
       ;;
     reset)
-      _reset_environment || return 1
+      _reset_environment || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 0
       ;;
     -v | --verbose)
@@ -517,7 +615,20 @@ main() {
       shift
       ;;
     *)
-      _print_usage || return 1
+      _print_usage || {
+        unset main__command
+        unset main__export_add_key
+        unset main__list_configs_verbose
+        unset main__config
+        unset main__file_path
+        return 1
+      }
+
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
       return 1
       ;;
     esac
@@ -526,10 +637,28 @@ main() {
   done
 
   if [ -z "${main__command}" ]; then
-    _print_usage || return 1
+    _print_usage || {
+      unset main__command
+      unset main__export_add_key
+      unset main__list_configs_verbose
+      unset main__config
+      unset main__file_path
+      return 1
+    }
+
+    unset main__command
+    unset main__export_add_key
+    unset main__list_configs_verbose
+    unset main__config
+    unset main__file_path
     return 0
   fi
 
+  unset main__command
+  unset main__export_add_key
+  unset main__list_configs_verbose
+  unset main__config
+  unset main__file_path
   return 0
 }
 
