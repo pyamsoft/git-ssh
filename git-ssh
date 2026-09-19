@@ -237,6 +237,11 @@ Host *
     # ProxyCommand /usr/bin/socat STDIO SOCKS4A:<hostname>:%h:%p,socksport=<port>
 EOF
 
+  chmod 600 "${create_config__file}" || {
+    _log 'Unable to chmod config file at: %s' "${create_config__file}"
+    return 1
+  }
+
   _log 'Created new config %s at %s' "${create_config__name}" "${create_config__file}"
 
   unset create_config__name
@@ -427,6 +432,11 @@ _print_version() {
 main() {
   mkdir -p "${CONFIG_DIR}" || {
     _log 'Unable to make config directory at: %s' "${CONFIG_DIR}"
+    return 1
+  }
+
+  chmod 700 "${CONFIG_DIR}" || {
+    _log 'Unable to chmod config directory at: %s' "${CONFIG_DIR}"
     return 1
   }
 
