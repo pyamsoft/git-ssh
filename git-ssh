@@ -312,8 +312,15 @@ _ensure_agent_added_key() {
   # instead, we replace ~/ with the expanded ${HOME} variable
   ensure_agent__priv="$(printf '%s\n' "${ensure_agent__priv}" | sed "s|^~|$HOME|")"
 
-  ensure_agent__priv="$(realpath -- "${ensure_agent__priv}")"
+  ensure_agent__priv="$(realpath -- "${ensure_agent__priv}")" || {
+    _log 'Failed to resolve identity file path from config: %s' "${ensure_agent__path}"
+    unset ensure_agent__priv
+    unset ensure_agent__path
+    return 1
+  }
+
   ensure_agent__pub="${ensure_agent__priv}.pub"
+  ensure_agent__already_added=0
 
   # If the pubkey exists, check if it's already in the agent
   if [ -f "${ensure_agent__pub}" ]; then
@@ -325,20 +332,29 @@ _ensure_agent_added_key() {
       for _key in ${ensure_agent__allkeys}; do
         # Found key, don't need anything
         if [ "${ensure_agent__key}" = "${_key}" ]; then
-          return 0
+          ensure_agent__already_added=1
+          break
         fi
         unset _key
       done
-      unset _key
     fi
-
-    # Not added, so add the key
-    ssh-add "${ensure_agent__priv}" >/dev/null || return 1
 
     unset ensure_agent__allkeys
     unset ensure_agent__key
   fi
 
+  # Add the key unless we positively confirmed it is already loaded.
+  if [ "${ensure_agent__already_added}" -eq 0 ]; then
+    ssh-add "${ensure_agent__priv}" >/dev/null || {
+      unset ensure_agent__already_added
+      unset ensure_agent__pub
+      unset ensure_agent__priv
+      unset ensure_agent__path
+      return 1
+    }
+  fi
+
+  unset ensure_agent__already_added
   unset ensure_agent__pub
   unset ensure_agent__priv
   unset ensure_agent__path
