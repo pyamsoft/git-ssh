@@ -11,10 +11,22 @@ setup() {
 
   KEY_DIR="${BATS_TEST_TMPDIR}/keys"
   mkdir -p "${KEY_DIR}"
+
+  # Resolve symlinks
+  KEY_DIR="$(realpath "${KEY_DIR}")"
+
   KEY_PATH="${KEY_DIR}/id_test"
   printf 'fake-private-key\n' >"${KEY_PATH}"
 
   CONFIG_DIR="${XDG_CONFIG_HOME}/git-ssh"
+}
+
+_permissions() {
+  if [ "$(uname)" = "Darwin" ]; then
+    stat -f '%Lp' "$1"
+  else
+    stat -c '%a' "$1"
+  fi
 }
 
 @test "version prints the version and exits 0" {
@@ -73,8 +85,8 @@ setup() {
 
   config_file="${CONFIG_DIR}/myconf.2"
   [ -e "${config_file}" ]
-  [ "$(stat -c '%a' "${CONFIG_DIR}")" = "700" ]
-  [ "$(stat -c '%a' "${config_file}")" = "600" ]
+  [ "$(_permissions "${CONFIG_DIR}")" = "700" ]
+  [ "$(_permissions "${config_file}")" = "600" ]
 }
 
 @test "create preserves a key path containing spaces" {
