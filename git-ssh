@@ -188,15 +188,6 @@ _create_config() {
     return 1
   fi
 
-  # Use the absolute path
-  create_config__path_orig="${create_config__path}"
-  create_config__path="$(realpath -- "${create_config__path}")" || {
-    _log 'Failed to locate ssh keyfile: %s, cannot create config' "${create_config__path_orig}"
-    unset create_config__path_orig
-    return 1
-  }
-  unset create_config__path_orig
-
   if [ ! -e "${create_config__path}" ]; then
     _log 'ssh keyfile does not exist at path: %s, cannot create config' "${create_config__path}"
     return 1
@@ -206,6 +197,15 @@ _create_config() {
     _log 'ssh keyfile is not readable at path: %s, cannot create config' "${create_config__path}"
     return 1
   fi
+
+  # Use the absolute path
+  create_config__path_orig="${create_config__path}"
+  create_config__path="$(realpath -- "${create_config__path}")" || {
+    _log 'Failed to locate ssh keyfile: %s, cannot create config' "${create_config__path_orig}"
+    unset create_config__path_orig
+    return 1
+  }
+  unset create_config__path_orig
 
   create_config__file="${CONFIG_DIR}/${create_config__name}.${CONFIG_VERSION}"
   if [ -e "${create_config__file}" ]; then
