@@ -21,13 +21,25 @@ ROOT="$(realpath "$(dirname "${BINDIR}")")"
 readonly ROOT
 unset BINDIR
 
+_bats() {
+  _target="$1"
+  shift
+
+  bats -p "${_target}" "$@"
+  return "$?"
+}
+
 main() {
-  if [ ! -r "${ROOT}/node_modules/.bin/bats" ]; then
-    printf -- 'Must install "bats" for testing. Run "bin/setup".\n'
+  if ! command -v bats >/dev/null 2>&1; then
+    printf -- 'Must install "bats" for testing..\n'
     return 1
   fi
 
-  "${ROOT}/node_modules/.bin/bats" "${ROOT}"/tests/git-ssh.bats "$@"
+  printf -- 'Running tests...\n'
+  _bats "${ROOT}"/tests/git-ssh.bats "$@" || {
+    printf -- 'Failed tests\n'
+    return 1
+  }
   return "$?"
 }
 
