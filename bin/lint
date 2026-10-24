@@ -29,6 +29,8 @@ main() {
 
   shellcheck \
     "${ROOT}"/git-ssh \
+    "${ROOT}"/git-ssh-install-hooks \
+    "${ROOT}"/hooks/* \
     "${ROOT}"/assets/pkgbuild/git/PKGBUILD \
     "${ROOT}"/res/shell/bash/* \
     "${ROOT}"/bin/* \
