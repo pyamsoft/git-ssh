@@ -27,7 +27,13 @@ main() {
     return 1
   fi
 
-  shellcheck "${ROOT}"/git-ssh "$@"
+  shellcheck \
+    "${ROOT}"/git-ssh \
+    "${ROOT}"/assets/pkgbuild/git/PKGBUILD \
+    "${ROOT}"/res/shell/bash/* \
+    "${ROOT}"/bin/* \
+    "${ROOT}"/tests/* \
+    "$@"
   return "$?"
 }
 

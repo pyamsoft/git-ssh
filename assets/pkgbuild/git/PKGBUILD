@@ -1,7 +1,7 @@
 ##
-# shellcheck shell=bash
-#
 # Maintainer: pyamsoft <developer(dot)pyamsoft(at)gmail(dot)com>
+#
+# shellcheck shell=bash
 ##
 
 _gitname=git-ssh
