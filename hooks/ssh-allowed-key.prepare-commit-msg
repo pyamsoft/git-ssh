@@ -47,9 +47,8 @@ _is_git_ssh_signed() {
 _extract_tilde() {
   _tilde="$1"
 
-  # shellcheck disable=SC2088
   case "${_tilde}" in
-  "~" | "~/"*)
+  \~ | \~/*)
     printf -- '%s' "${HOME}/${_tilde#\~}"
     ;;
   *)
