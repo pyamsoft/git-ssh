@@ -42,66 +42,51 @@ _git_ssh() {
 
   if [[ "${cur}" = --* ]]; then
     if [[ "${prev}" = "export" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${export_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${export_options}" -- "${cur}")
     elif [[ "${prev}" = "list" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${list_options}" -- "${cur}")
     else
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${long_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${long_options}" -- "${cur}")
     fi
   elif [[ "${cur}" = -* ]]; then
     if [[ "${prev}" = "export" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${export_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${export_options}" -- "${cur}")
     elif [[ "${prev}" = "list" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${list_options}" -- "${cur}")
     else
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${long_options}" -- "${cur}") $(compgen -W "${short_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${long_options} ${short_options}" -- "${cur}")
     fi
   else
     if [[ "${prev}" = "export" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${git_ssh_configs} ${export_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${git_ssh_configs} ${export_options}" -- "${cur}")
     elif [[ "${prev}" = "-a" ]] || [[ "${prev}" = "--add" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${git_ssh_configs}" -- "${cur}")
     elif [[ "${prev}" = "delete" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${git_ssh_configs}" -- "${cur}")
     elif [[ "${prev}" = "help" ]]; then
       COMPREPLY=()
     elif [[ "${prev}" = "version" ]]; then
       COMPREPLY=()
     elif [[ "${prev}" = "list" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${list_options}" -- "${cur}")
     elif [[ "${prev}" = "create" ]] || [[ "${prevprev}" = "create" ]]; then
       COMPREPLY=()
     elif [[ "${cur}" = "export" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${git_ssh_configs} ${export_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${git_ssh_configs} ${export_options}" -- "${cur}")
     elif [[ "${cur}" = "-a" ]] || [[ "${cur}" = "--add" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${git_ssh_configs}" -- "${cur}")
     elif [[ "${cur}" = "delete" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${git_ssh_configs}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${git_ssh_configs}" -- "${cur}")
     elif [[ "${cur}" = "help" ]]; then
       COMPREPLY=()
     elif [[ "${cur}" = "version" ]]; then
       COMPREPLY=()
     elif [[ "${cur}" = "list" ]]; then
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${list_options}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${list_options}" -- "${cur}")
     elif [[ "${cur}" = "create" ]] || [[ "${prev}" = "create" ]]; then
       COMPREPLY=()
     else
-      # shellcheck disable=SC2207
-      COMPREPLY=($(compgen -W "${actions}" -- "${cur}"))
+      mapfile -t COMPREPLY < <(compgen -W "${actions}" -- "${cur}")
     fi
   fi
 
